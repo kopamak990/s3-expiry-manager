@@ -215,3 +215,110 @@ h1 {
     }
 }
 
+/* Authentication Pages Styling */
+.auth-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    padding: 40px 20px;
+    box-sizing: border-box;
+}
+
+.auth-card {
+    background-color: #ffffff;
+    padding: 40px 30px;
+    border-radius: 12px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    max-width: 450px; /* Smaller card for forms */
+    width: 100%;
+    animation: fadeIn 0.8s ease-out;
+}
+
+/* Dark Mode for Auth Pages */
+@media (prefers-color-scheme: dark) {
+    .auth-card {
+        background-color: #2a2a3a;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    }
+}
+
+.auth-title {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+    font-size: 2rem;
+    margin-bottom: 30px;
+    color: #212529;
+}
+@media (prefers-color-scheme: dark) {
+    .auth-title {
+        color: #e0e0e0;
+    }
+}
+
+.form-group {
+    margin-bottom: 20px;
+    text-align: left; /* Align labels and inputs to the left */
+}
+
+.form-group label {
+    display: block; /* Each label on its own line */
+    font-size: 1rem;
+    color: #495057;
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+@media (prefers-color-scheme: dark) {
+    .form-group label {
+        color: #ccc;
+    }
+}
+
+.form-group input[type="text"],
+.form-group input[type="password"] {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #ced4da;
+    border-radius: 8px;
+    font-size: 1rem;
+    box-sizing: border-box; /* Include padding in width */
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    background-color: #f0f0f0; /* Light input background */
+    color: #343a40;
+}
+@media (prefers-color-scheme: dark) {
+    .form-group input[type="text"],
+    .form-group input[type="password"] {
+        background-color: #3a3a4a; /* Dark input background */
+        border-color: #555;
+        color: #e0e0e0;
+    }
+}
+
+.form-group input[type="text"]:focus,
+.form-group input[type="password"]:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    outline: none;
+}
+
+.auth-btn {
+    width: 100%; /* Make button full width of card */
+    margin-top: 10px;
+}
+
+.auth-switch {
+    margin-top: 25px;
+    font-size: 0.95rem;
+    color: #6c757d;
+}
+.auth-switch a {
+    color: #007bff;
+    text-decoration: none;
+    font-weight: 600;
+}
+.auth-switch a:hover {
+    text-decoration: underline;
+}
+
