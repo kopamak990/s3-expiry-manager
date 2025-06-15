@@ -1,0 +1,217 @@
+/* General Body Styles */
+body {
+    font-family: 'Open Sans', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f8f9fa; /* Light background */
+    color: #343a40; /* Dark text */
+    line-height: 1.6;
+    display: flex; /* Use flexbox for body to center content */
+    min-height: 100vh; /* Ensure body takes full viewport height */
+    box-sizing: border-box; /* Include padding and border in element's total width and height */
+}
+
+/* Dark Mode Preference */
+@media (prefers-color-scheme: dark) {
+    body {
+        background-color: #1e1e2e; /* Darker background */
+        color: #e0e0e0; /* Lighter text */
+    }
+
+    .hero-content {
+        background-color: #2a2a3a; /* Slightly lighter dark background for content area */
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4); /* Stronger shadow for contrast */
+    }
+
+    .btn-primary {
+        background-color: #4da6ff; /* Lighter blue for dark mode */
+        color: #1e1e2e;
+    }
+    .btn-primary:hover {
+        background-color: #7abeff;
+    }
+
+    .btn-secondary {
+        background-color: #6c757d;
+        color: #e0e0e0;
+    }
+    .btn-secondary:hover {
+        background-color: #8c959d;
+    }
+
+    .icon-pulse {
+        color: #4da6ff; /* Lighter icon color in dark mode */
+    }
+}
+
+/* Hero Section Styling */
+.hero-section {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    padding: 40px 20px; /* Add padding for smaller screens */
+    box-sizing: border-box;
+}
+
+.hero-content {
+    background-color: #ffffff;
+    padding: 60px 40px;
+    border-radius: 12px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    max-width: 700px; /* Constrain content width */
+    width: 100%;
+    animation: fadeIn 1s ease-out; /* Main content fades in */
+}
+
+/* Images */
+.aws-logo {
+    max-width: 180px; /* Adjust size for professional look */
+    height: auto;
+    margin-bottom: 30px;
+    display: block; /* Ensures it behaves as a block element */
+    margin-left: auto; /* Center the logo */
+    margin-right: auto; /* Center the logo */
+}
+
+/* Headings and Paragraphs */
+h1 {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+    font-size: 2.8rem;
+    margin-bottom: 20px;
+    color: #212529; /* A bit darker for good contrast */
+}
+
+.tagline {
+    font-family: 'Open Sans', sans-serif;
+    font-size: 1.3rem;
+    color: #6c757d;
+    margin-bottom: 40px;
+    font-weight: 400;
+}
+
+/* S3 Icon Styling */
+.icon-pulse {
+    color: #ff9900; /* AWS S3 Orange */
+    font-size: 6rem; /* Large icon */
+    margin-bottom: 40px;
+    animation: pulse 2s infinite ease-in-out; /* Subtle pulsing animation */
+}
+
+/* Buttons */
+.buttons {
+    display: flex;
+    gap: 25px; /* Space between buttons */
+    justify-content: center;
+    flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
+    margin-top: 30px; /* Space above buttons */
+}
+
+.btn {
+    padding: 15px 35px; /* More padding for larger, easier-to-click buttons */
+    font-size: 1.1rem;
+    border-radius: 50px; /* Pill-shaped buttons */
+    text-decoration: none;
+    font-weight: 600;
+    transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+    border: none; /* Remove default button border */
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+}
+
+.btn-primary {
+    background-color: #007bff; /* Vibrant primary blue */
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3; /* Darker blue on hover */
+    transform: translateY(-3px); /* Lift effect */
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+.btn-secondary {
+    background-color: #6c757d; /* Muted secondary gray */
+    color: white;
+}
+
+.btn-secondary:hover {
+    background-color: #5a6268; /* Darker gray on hover */
+    transform: translateY(-3px); /* Lift effect */
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+/* Individual element animation delays */
+.fade-in-up {
+    animation: fadeInUp 0.8s ease-out forwards;
+    opacity: 0; /* Hidden by default */
+}
+
+.delay-1 { animation-delay: 0.2s; }
+.delay-2 { animation-delay: 0.4s; }
+.delay-3 { animation-delay: 0.6s; }
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    h1 {
+        font-size: 2.2rem;
+    }
+    .tagline {
+        font-size: 1.1rem;
+    }
+    .hero-content {
+        padding: 40px 25px;
+    }
+    .icon-pulse {
+        font-size: 4.5rem;
+    }
+    .btn {
+        padding: 12px 25px;
+        font-size: 1rem;
+    }
+    .buttons {
+        flex-direction: column; /* Stack buttons vertically on small screens */
+        gap: 15px; /* Adjust gap for vertical stacking */
+        width: 80%; /* Make buttons take more width */
+        margin-left: auto;
+        margin-right: auto;
+    }
+}
+
+@media (max-width: 480px) {
+    h1 {
+        font-size: 1.8rem;
+    }
+    .tagline {
+        font-size: 1rem;
+    }
+    .hero-content {
+        padding: 30px 20px;
+    }
+    .aws-logo {
+        max-width: 150px;
+    }
+    .icon-pulse {
+        font-size: 4rem;
+    }
+}
+

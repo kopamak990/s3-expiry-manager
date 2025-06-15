@@ -1,15 +1,19 @@
 {% extends "layout.html" %}
 
 {% block content %}
-<div class="landing-container">
-    <img src="https://a0.awsstatic.com/libra-css/images/logos/aws_logo_smile_1200x630.png" alt="AWS Logo" class="aws-logo">
-    <h1>Welcome to S3 Expiry Manager</h1>
-    <p>Manage your Amazon S3 object expirations effortlessly.</p>
-    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Amazon_S3_icon.svg/1024px-Amazon_S3_icon.svg.png" alt="S3 Bucket Icon" class="s3-icon">
-    <div class="buttons">
-        <a href="{{ url_for('register') }}" class="btn btn-primary">Sign Up</a>
-        <a href="{{ url_for('login') }}" class="btn btn-secondary">Log In</a>
+<main class="hero-section">
+    <div class="hero-content">
+        <img src="https://a0.awsstatic.com/libra-css/images/logos/aws_logo_smile_1200x630.png" alt="AWS Logo" class="aws-logo">
+        <h1 class="fade-in-up">Welcome to S3 Expiry Manager</h1>
+        <p class="tagline fade-in-up delay-1">Effortlessly control your Amazon S3 object lifecycles.</p>
+        <div class="icon-pulse fade-in-up delay-2">
+            <i class="fas fa-s3 fa-6x"></i> {# Font Awesome S3 Icon #}
+        </div>
+        <div class="buttons fade-in-up delay-3">
+            <a href="{{ url_for('register') }}" class="btn btn-primary">Sign Up</a>
+            <a href="{{ url_for('login') }}" class="btn btn-secondary">Log In</a>
+        </div>
     </div>
-</div>
+</main>
 {% endblock %}
 
