@@ -1,12 +1,65 @@
 {% extends "layout.html" %}
+
+{% block title %}Home - S3 Expiry Manager{% endblock %}
+
 {% block content %}
-<div class="container mt-5">
-  <h1 class="text-center">Welcome to S3 Expiry Manager</h1>
-  <p class="text-center lead">Manage your Amazon S3 object expirations effortlessly.</p>
-  <div class="text-center mt-4">
-    <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg mx-2">Sign Up</a>
-    <a href="{{ url_for('login') }}" class="btn btn-secondary btn-lg mx-2">Log In</a>
-  </div>
+<div class="landing-container">
+    <div class="hero-box">
+        <h1>Welcome to <span class="brand">S3 Expiry Manager</span></h1>
+        <p class="subtext">Easily manage your Amazon S3 object expirations with confidence and simplicity.</p>
+        <div class="cta-buttons">
+            <a href="{{ url_for('register') }}" class="btn btn-primary">Sign Up</a>
+            <a href="{{ url_for('login') }}" class="btn btn-secondary">Log In</a>
+        </div>
+    </div>
 </div>
+{% endblock %}
+
+{% block styles %}
+<style>
+    .landing-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 80vh;
+        padding: 30px;
+        text-align: center;
+    }
+
+    .hero-box {
+        max-width: 600px;
+    }
+
+    .brand {
+        color: #2c3e50;
+    }
+
+    .subtext {
+        margin: 15px 0 25px;
+        color: #666;
+        font-size: 18px;
+    }
+
+    .cta-buttons .btn {
+        margin: 0 10px;
+        padding: 10px 25px;
+        font-size: 16px;
+        border-radius: 5px;
+    }
+
+    .btn-primary {
+        background-color: #007bff;
+        color: white;
+    }
+
+    .btn-secondary {
+        background-color: #343a40;
+        color: white;
+    }
+
+    .btn:hover {
+        opacity: 0.9;
+    }
+</style>
 {% endblock %}
 
