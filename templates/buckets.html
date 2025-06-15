@@ -1,0 +1,10 @@
+{% extends "layout.html" %}
+{% block content %}
+<h2>Buckets</h2>
+<ul>
+  {% for bucket in buckets %}
+    <li><a href="{{ url_for('get_objects', bucket_name=bucket.Name) }}">{{ bucket.Name }}</a></li>
+  {% endfor %}
+</ul>
+{% endblock %}
+

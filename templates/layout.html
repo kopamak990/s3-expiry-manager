@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>S3 Expiry Manager</title>
+</head>
+<body>
+    <div style="text-align:right; margin:10px;">
+        {% if current_user.is_authenticated %}
+            Logged in as {{ current_user.email }} |
+            <a href="{{ url_for('logout') }}">Logout</a>
+        {% endif %}
+    </div>
+    {% block content %}{% endblock %}
+</body>
+</html>
+

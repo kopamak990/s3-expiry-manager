@@ -1,0 +1,20 @@
+{% extends "layout.html" %}
+{% block content %}
+<h2>Objects in {{ bucket_name }}</h2>
+<table>
+    <tr><th>Key</th><th>Last Modified</th><th>Size</th><th>Action</th></tr>
+    {% for obj in objects %}
+    <tr>
+        <td>{{ obj.Key }}</td>
+        <td>{{ obj.LastModified }}</td>
+        <td>{{ obj.Size }}</td>
+        <td>
+            <form method="POST" action="{{ url_for('set_expiry', bucket_name=bucket_name, object_key=obj.Key) }}">
+                <button type="submit">Set 30-Day Expiry</button>
+            </form>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}
+

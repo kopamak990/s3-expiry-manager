@@ -1,0 +1,12 @@
+{% extends "layout.html" %}
+{% block content %}
+<h2>Register</h2>
+<form method="POST">
+    Email: <input type="email" name="email"><br>
+    Password: <input type="password" name="password"><br>
+    AWS Access Key: <input type="text" name="aws_access_key"><br>
+    AWS Secret Key: <input type="text" name="aws_secret_key"><br>
+    <button type="submit">Register</button>
+</form>
+{% endblock %}
+
