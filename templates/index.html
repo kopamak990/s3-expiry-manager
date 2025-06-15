@@ -1,11 +1,12 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>S3 Expiry Manager</title>
-</head>
-<body>
-    <h1>Welcome to S3 Expiry Manager</h1>
-    <a href="/buckets">View S3 Buckets</a>
-</body>
-</html>
+{% extends "layout.html" %}
+{% block content %}
+<div class="container mt-5">
+  <h1 class="text-center">Welcome to S3 Expiry Manager</h1>
+  <p class="text-center lead">Manage your Amazon S3 object expirations effortlessly.</p>
+  <div class="text-center mt-4">
+    <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg mx-2">Sign Up</a>
+    <a href="{{ url_for('login') }}" class="btn btn-secondary btn-lg mx-2">Log In</a>
+  </div>
+</div>
+{% endblock %}
 
