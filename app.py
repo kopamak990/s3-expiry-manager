@@ -6,7 +6,9 @@ import os
 
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "your_secret_key")
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///instance/users.db'
+basedir = os.path.abspath(os.path.dirname(__file__))
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'instance', 'users.db')
+
 
 db.init_app(app)
 
