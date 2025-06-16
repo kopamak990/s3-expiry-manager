@@ -1,324 +1,497 @@
-/* General Body Styles */
-body {
-    font-family: 'Open Sans', sans-serif;
-    margin: 0;
-    padding: 0;
-    background-color: #f8f9fa; /* Light background */
-    color: #343a40; /* Dark text */
-    line-height: 1.6;
-    display: flex; /* Use flexbox for body to center content */
-    min-height: 100vh; /* Ensure body takes full viewport height */
-    box-sizing: border-box; /* Include padding and border in element's total width and height */
+/* Modern CSS Reset & Variables */
+:root {
+  /* Light theme colors */
+  --bg-primary: #f8f9fa; /* Lighter off-white */
+  --bg-secondary: #ffffff;
+  --text-primary: #212529; /* Deeper charcoal */
+  --text-secondary: #495057;
+  --text-muted: #6c757d;
+  --border-color: #dee2e6;
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.08), 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 8px -2px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 12px 24px -6px rgba(0, 0, 0, 0.15), 0 6px 12px -3px rgba(0, 0, 0, 0.08);
+  --accent-primary: #007bff; /* Standard Bootstrap blue, generally well-received */
+  --accent-hover: #0056b3;
+  --success: #28a745; /* Darker green */
+  --error: #dc3545; /* Darker red */
+  --warning: #ffc107;
+  --info: #17a2b8; /* Added info color for consistency */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --spacing-xs: 8px;
+  --spacing-sm: 12px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-2xl: 48px;
 }
 
-/* Dark Mode Preference */
+/* Dark theme */
 @media (prefers-color-scheme: dark) {
-    body {
-        background-color: #1e1e2e; /* Darker background */
-        color: #e0e0e0; /* Lighter text */
-    }
-
-    .hero-content {
-        background-color: #2a2a3a; /* Slightly lighter dark background for content area */
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4); /* Stronger shadow for contrast */
-    }
-
-    .btn-primary {
-        background-color: #4da6ff; /* Lighter blue for dark mode */
-        color: #1e1e2e;
-    }
-    .btn-primary:hover {
-        background-color: #7abeff;
-    }
-
-    .btn-secondary {
-        background-color: #6c757d;
-        color: #e0e0e0;
-    }
-    .btn-secondary:hover {
-        background-color: #8c959d;
-    }
-
-    .icon-pulse {
-        color: #4da6ff; /* Lighter icon color in dark mode */
-    }
+  :root {
+    --bg-primary: #121212; /* True black background for deep contrast */
+    --bg-secondary: #1e1e1e; /* Dark gray for cards/elements */
+    --text-primary: #f8f9fa;
+    --text-secondary: #adb5bd;
+    --text-muted: #ced4da;
+    --border-color: #343a40;
+    --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.4), 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 8px -2px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
+    --shadow-lg: 0 12px 24px -6px rgba(0, 0, 0, 0.45), 0 6px 12px -3px rgba(0, 0, 0, 0.35);
+    --accent-primary: #6daffb; /* Lighter blue for dark mode */
+    --accent-hover: #96c8ff;
+    --success: #2ed16d; /* Brighter green */
+    --error: #ff4d4d; /* Brighter red */
+    --warning: #ffdb58;
+    --info: #4dc2ea;
+  }
 }
 
-/* Hero Section Styling */
+/* Reset & Base Styles */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.6;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11'; /* Typographic features */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.3s ease, color 0.3s ease; /* Increased transition duration for smoother theme change */
+}
+
+/* Layout Containers */
+.main-content-container {
+  flex-grow: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: var(--spacing-lg);
+  width: 100%;
+}
+
 .hero-section {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-    padding: 40px 20px; /* Add padding for smaller screens */
-    box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  padding: var(--spacing-2xl) var(--spacing-lg);
+  flex-grow: 1;
 }
 
+/* Hero Content */
 .hero-content {
-    background-color: #ffffff;
-    padding: 60px 40px;
-    border-radius: 12px;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-    text-align: center;
-    max-width: 700px; /* Constrain content width */
-    width: 100%;
-    animation: fadeIn 1s ease-out; /* Main content fades in */
+  text-align: center;
+  background-color: var(--bg-secondary);
+  padding: var(--spacing-2xl) var(--spacing-xl);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md); /* Slightly softer default shadow */
+  max-width: 640px;
+  width: 100%;
+  border: 1px solid var(--border-color);
+  transition: all 0.3s ease; /* Consistent transition duration */
 }
 
-/* Images */
-.aws-logo {
-    max-width: 180px; /* Adjust size for professional look */
-    height: auto;
-    margin-bottom: 30px;
-    display: block; /* Ensures it behaves as a block element */
-    margin-left: auto; /* Center the logo */
-    margin-right: auto; /* Center the logo */
+.hero-content:hover {
+  transform: translateY(-3px); /* More pronounced lift on hover */
+  box-shadow: var(--shadow-lg); /* Stronger shadow on hover */
 }
 
-/* Headings and Paragraphs */
-h1 {
-    font-family: 'Montserrat', sans-serif;
-    font-weight: 700;
-    font-size: 2.8rem;
-    margin-bottom: 20px;
-    color: #212529; /* A bit darker for good contrast */
+/* Logo Section - Clean Minimal Approach */
+.hero-logo {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-xl);
+  padding: var(--spacing-sm);
+  /* The existing background/border/backdrop-filter create a nice glass-morphic look */
+  background: rgba(255, 255, 255, 0.5); /* Use specific RGBA values for light mode */
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  backdrop-filter: blur(10px);
+  width: fit-content;
+  margin-left: auto;
+  margin-right: auto;
+  transition: all 0.3s ease; /* Smooth transition for dark mode */
 }
 
-.tagline {
-    font-family: 'Open Sans', sans-serif;
-    font-size: 1.3rem;
-    color: #6c757d;
-    margin-bottom: 40px;
-    font-weight: 400;
+/* Dark mode adjustments for hero-logo background/border */
+@media (prefers-color-scheme: dark) {
+  .hero-logo {
+    background: rgba(0, 0, 0, 0.4); /* Darker background for dark mode */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
 }
 
-/* S3 Icon Styling */
-.icon-pulse {
-    color: #ff9900; /* AWS S3 Orange */
-    font-size: 6rem; /* Large icon */
-    margin-bottom: 40px;
-    animation: pulse 2s infinite ease-in-out; /* Subtle pulsing animation */
+.hero-logo img {
+  height: 20px; /* Slightly increased logo size for better visibility */
+  width: auto;
+  object-fit: contain;
+  /* Removed grayscale/opacity for direct color if the logo is meant to be vibrant,
+     or adjust as needed based on your actual logo image */
+  filter: none; /* Let the original logo colors show */
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Buttons */
-.buttons {
-    display: flex;
-    gap: 25px; /* Space between buttons */
-    justify-content: center;
-    flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
-    margin-top: 30px; /* Space above buttons */
+.hero-logo img:hover {
+  transform: scale(1.1); /* Slightly more zoom on hover */
 }
 
-.btn {
-    padding: 15px 35px; /* More padding for larger, easier-to-click buttons */
-    font-size: 1.1rem;
-    border-radius: 50px; /* Pill-shaped buttons */
-    text-decoration: none;
-    font-weight: 600;
-    transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
-    border: none; /* Remove default button border */
-    cursor: pointer;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+
+/* Typography */
+.hero-title {
+  font-size: clamp(2rem, 5vw, 3rem); /* Slightly larger clamp range for impact */
+  margin-bottom: var(--spacing-md); /* Increased space below title */
+  color: var(--text-primary);
+  font-weight: 800; /* Bolder for prominence */
+  letter-spacing: -0.04em; /* Tighter letter-spacing for modern look */
+  /* Gradient text looks great, keep it */
+  background: linear-gradient(135deg, var(--text-primary) 0%, var(--text-secondary) 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
-.btn-primary {
-    background-color: #007bff; /* Vibrant primary blue */
-    color: white;
+.hero-description {
+  font-size: 1.05rem; /* Adjusted for readability */
+  color: var(--text-muted);
+  margin-bottom: var(--spacing-xl);
+  line-height: 1.75; /* Improved line height for readability */
+  max-width: 520px; /* Slightly wider text block */
+  margin-left: auto;
+  margin-right: auto;
 }
 
-.btn-primary:hover {
-    background-color: #0056b3; /* Darker blue on hover */
-    transform: translateY(-3px); /* Lift effect */
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+.hero-buttons {
+  display: flex;
+  justify-content: center;
+  gap: var(--spacing-lg); /* Increased space between buttons */
+  flex-wrap: wrap;
+  margin-top: var(--spacing-lg); /* Add some margin above buttons */
 }
 
-.btn-secondary {
-    background-color: #6c757d; /* Muted secondary gray */
-    color: white;
-}
-
-.btn-secondary:hover {
-    background-color: #5a6268; /* Darker gray on hover */
-    transform: translateY(-3px); /* Lift effect */
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-}
-
-/* Animations */
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-@keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-    100% { transform: scale(1); }
-}
-
-/* Individual element animation delays */
-.fade-in-up {
-    animation: fadeInUp 0.8s ease-out forwards;
-    opacity: 0; /* Hidden by default */
-}
-
-.delay-1 { animation-delay: 0.2s; }
-.delay-2 { animation-delay: 0.4s; }
-.delay-3 { animation-delay: 0.6s; }
-
-/* Responsive Adjustments */
-@media (max-width: 768px) {
-    h1 {
-        font-size: 2.2rem;
-    }
-    .tagline {
-        font-size: 1.1rem;
-    }
-    .hero-content {
-        padding: 40px 25px;
-    }
-    .icon-pulse {
-        font-size: 4.5rem;
-    }
-    .btn {
-        padding: 12px 25px;
-        font-size: 1rem;
-    }
-    .buttons {
-        flex-direction: column; /* Stack buttons vertically on small screens */
-        gap: 15px; /* Adjust gap for vertical stacking */
-        width: 80%; /* Make buttons take more width */
-        margin-left: auto;
-        margin-right: auto;
-    }
-}
-
-@media (max-width: 480px) {
-    h1 {
-        font-size: 1.8rem;
-    }
-    .tagline {
-        font-size: 1rem;
-    }
-    .hero-content {
-        padding: 30px 20px;
-    }
-    .aws-logo {
-        max-width: 150px;
-    }
-    .icon-pulse {
-        font-size: 4rem;
-    }
-}
-
-/* Authentication Pages Styling */
+/* Auth Components */
 .auth-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-    padding: 40px 20px;
-    box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  padding: var(--spacing-lg);
+  flex-grow: 1;
 }
 
 .auth-card {
-    background-color: #ffffff;
-    padding: 40px 30px;
-    border-radius: 12px;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-    text-align: center;
-    max-width: 450px; /* Smaller card for forms */
-    width: 100%;
-    animation: fadeIn 0.8s ease-out;
+  background-color: var(--bg-secondary);
+  padding: var(--spacing-2xl);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  max-width: 420px;
+  width: 100%;
+  text-align: center;
+  border: 1px solid var(--border-color);
+  transition: all 0.3s ease; /* Consistent transition */
 }
 
-/* Dark Mode for Auth Pages */
-@media (prefers-color-scheme: dark) {
-    .auth-card {
-        background-color: #2a2a3a;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-    }
+.auth-card:hover { /* Added hover effect for auth card */
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
 }
 
 .auth-title {
-    font-family: 'Montserrat', sans-serif;
-    font-weight: 700;
-    font-size: 2rem;
-    margin-bottom: 30px;
-    color: #212529;
-}
-@media (prefers-color-scheme: dark) {
-    .auth-title {
-        color: #e0e0e0;
-    }
+  font-size: 2rem; /* Slightly larger title for auth pages */
+  margin-bottom: var(--spacing-2xl); /* More space below auth title */
+  color: var(--text-primary);
+  font-weight: 700;
+  letter-spacing: -0.03em;
 }
 
+/* Form Styles */
 .form-group {
-    margin-bottom: 20px;
-    text-align: left; /* Align labels and inputs to the left */
+  margin-bottom: var(--spacing-lg);
+  text-align: left;
 }
 
 .form-group label {
-    display: block; /* Each label on its own line */
-    font-size: 1rem;
-    color: #495057;
-    margin-bottom: 8px;
-    font-weight: 600;
-}
-@media (prefers-color-scheme: dark) {
-    .form-group label {
-        color: #ccc;
-    }
+  display: block;
+  font-size: 0.9rem; /* Consistent smaller label size */
+  color: var(--text-secondary);
+  margin-bottom: var(--spacing-xs);
+  font-weight: 600; /* Slightly bolder labels */
+  letter-spacing: 0.025em;
 }
 
 .form-group input[type="text"],
-.form-group input[type="password"] {
-    width: 100%;
-    padding: 12px 15px;
-    border: 1px solid #ced4da;
-    border-radius: 8px;
-    font-size: 1rem;
-    box-sizing: border-box; /* Include padding in width */
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
-    background-color: #f0f0f0; /* Light input background */
-    color: #343a40;
-}
-@media (prefers-color-scheme: dark) {
-    .form-group input[type="text"],
-    .form-group input[type="password"] {
-        background-color: #3a3a4a; /* Dark input background */
-        border-color: #555;
-        color: #e0e0e0;
-    }
+.form-group input[type="password"],
+.form-group input[type="email"] { /* Explicitly included email here as discussed */
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-size: 1rem;
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  transition: all 0.3s ease; /* Consistent transition duration */
+  font-family: inherit;
+  /* Ensure consistent appearance across browsers */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
 }
 
-.form-group input[type="text"]:focus,
-.form-group input[type="password"]:focus {
-    border-color: #007bff;
-    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
-    outline: none;
+.form-group input:focus {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.2); /* Softer focus ring */
+  outline: none;
+  background-color: var(--bg-secondary); /* Keep background consistent on focus */
+}
+
+.form-group input::placeholder {
+  color: var(--text-muted);
+  opacity: 0.7; /* Make placeholder text slightly lighter */
+}
+
+/* Modern Button System */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border-radius: var(--radius-md);
+  font-size: 0.9rem; /* Slightly smaller button text for elegance */
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+  text-decoration: none;
+  border: 1px solid transparent;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* Consistent transition duration */
+  font-family: inherit;
+  letter-spacing: 0.025em;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm); /* Default button shadow */
+}
+
+/* Hover shimmer effect */
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent); /* Stronger shimmer */
+  transition: left 0.6s ease; /* Slower shimmer for a more elegant feel */
+}
+
+.btn:hover::before {
+  left: 100%;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-hover) 100%);
+  color: white;
+  border-color: var(--accent-primary);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px); /* Consistent lift */
+  box-shadow: var(--shadow-md); /* Stronger shadow on hover */
+  background: linear-gradient(135deg, var(--accent-hover) 0%, var(--accent-primary) 100%);
+}
+
+.btn-secondary {
+  background-color: var(--bg-secondary);
+  color: var(--text-secondary);
+  border-color: var(--border-color);
+  box-shadow: var(--shadow-sm); /* Add shadow to secondary button */
+}
+
+.btn-secondary:hover {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 .auth-btn {
-    width: 100%; /* Make button full width of card */
-    margin-top: 10px;
+  width: 100%;
+  margin-top: var(--spacing-xl); /* More space above auth buttons */
+  padding: var(--spacing-md) var(--spacing-xl); /* Larger padding for auth buttons */
+  font-size: 1rem; /* Consistent font size */
 }
 
+/* Auth Switch Link */
 .auth-switch {
-    margin-top: 25px;
-    font-size: 0.95rem;
-    color: #6c757d;
-}
-.auth-switch a {
-    color: #007bff;
-    text-decoration: none;
-    font-weight: 600;
-}
-.auth-switch a:hover {
-    text-decoration: underline;
+  margin-top: var(--spacing-2xl); /* More vertical space */
+  font-size: 0.9rem; /* Slightly smaller for subtle look */
+  color: var(--text-muted);
 }
 
+.auth-switch a {
+  color: var(--accent-primary);
+  text-decoration: none;
+  font-weight: 700; /* Bolder link text */
+  transition: color 0.2s ease;
+}
+
+.auth-switch a:hover {
+  color: var(--accent-hover);
+  text-decoration: underline;
+}
+
+/* Flash Messages - Modern Design */
+.flashes {
+  list-style: none;
+  margin-bottom: var(--spacing-xl); /* More space below messages */
+  text-align: left;
+}
+
+.flashes li {
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--spacing-sm);
+  font-size: 0.9rem; /* Consistent message font size */
+  border-left: 5px solid; /* Thicker border */
+  backdrop-filter: blur(8px); /* Slightly less blur */
+  background-color: rgba(255, 255, 255, 0.6); /* Semi-transparent background for light theme */
+  box-shadow: var(--shadow-sm); /* Subtle shadow for messages */
+}
+
+@media (prefers-color-scheme: dark) {
+  .flashes li {
+    background-color: rgba(0, 0, 0, 0.4); /* Darker semi-transparent background */
+  }
+}
+
+.flashes .success {
+  background-color: rgba(40, 167, 69, 0.15); /* Slightly more opaque background */
+  color: var(--success);
+  border-left-color: var(--success);
+}
+
+.flashes .error,
+.flashes .danger {
+  background-color: rgba(220, 53, 69, 0.15);
+  color: var(--error);
+  border-left-color: var(--error);
+}
+
+.flashes .info {
+  background-color: rgba(23, 162, 184, 0.15);
+  color: var(--info); /* Using the new info variable */
+  border-left-color: var(--info);
+}
+
+/* Modern Animation */
+.icon-pulse {
+  animation: modernPulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  display: inline-block;
+  color: var(--accent-primary);
+}
+
+@keyframes modernPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.08); /* Slightly more pronounced pulse */
+    opacity: 0.9;
+  }
+}
+
+/* Responsive Design - Mobile First */
+@media (max-width: 768px) { /* Adjusted breakpoint for slightly larger tablets */
+  .hero-content,
+  .auth-card {
+    padding: var(--spacing-lg);
+    margin: var(--spacing-md);
+  }
+
+  .hero-logo {
+    flex-direction: row; /* Keep logo horizontal even on smaller screens if possible */
+    gap: var(--spacing-xs);
+    padding: var(--spacing-xs);
+  }
+
+  .hero-logo img {
+    height: 24px; /* Default size for mobile */
+  }
+
+  .hero-buttons {
+    flex-direction: column;
+    gap: var(--spacing-sm);
+  }
+
+  .btn {
+    width: 100%;
+  }
+
+  .hero-title {
+    font-size: clamp(1.8rem, 5vw, 2.2rem); /* Adjusted clamp for mobile */
+  }
+
+  .hero-description {
+    font-size: 0.95rem; /* Slightly smaller for mobile readability */
+  }
+
+  .auth-title {
+    font-size: 1.7rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .main-content-container,
+  .hero-section,
+  .auth-container {
+    padding: var(--spacing-sm);
+  }
+
+  .hero-content,
+  .auth-card {
+    padding: var(--spacing-md);
+  }
+  .auth-title {
+    font-size: 1.5rem;
+  }
+}
+
+/* Accessibility Improvements */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Focus styles for better accessibility */
+.btn:focus-visible,
+input:focus-visible,
+a:focus-visible { /* Added focus-visible for links too */
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 3px; /* More prominent outline offset */
+  border-radius: var(--radius-sm); /* Apply radius to outline */
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Better text rendering */
+body {
+  text-rendering: optimizeLegibility;
+}

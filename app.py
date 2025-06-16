@@ -1,18 +1,14 @@
 from flask import Flask, render_template, redirect, url_for, request, flash
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
-from flask_sqlalchemy import SQLAlchemy
 from models import db, User, ActionLog
 from extensions import bcrypt
-import boto3
 import os
 
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "your_secret_key")
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///instance/users.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
-bcrypt.init_app(app)
 
 login_manager = LoginManager()
 login_manager.login_view = 'login'
@@ -62,57 +58,30 @@ def logout():
     logout_user()
     return redirect(url_for('index'))
 
-def get_s3_client():
-    return boto3.client(
-        's3',
-        aws_access_key_id=current_user.aws_access_key,
-        aws_secret_access_key=current_user.aws_secret_key
-    )
-
 @app.route('/buckets')
 @login_required
 def buckets():
-    s3 = get_s3_client()
-    try:
-        buckets = s3.list_buckets()['Buckets']
-    except Exception as e:
-        flash("Error fetching buckets: " + str(e))
-        buckets = []
-    return render_template('buckets.html', buckets=buckets)
+    # Placeholder
+    return render_template('buckets.html')
 
-@app.route('/buckets/<bucket_name>')
+@app.route('/credentials', methods=['GET', 'POST'])
 @login_required
-def get_objects(bucket_name):
-    s3 = get_s3_client()
-    try:
-        objects = s3.list_objects_v2(Bucket=bucket_name).get('Contents', [])
-    except Exception as e:
-        flash("Error fetching objects: " + str(e))
-        objects = []
-    return render_template('objects.html', objects=objects, bucket_name=bucket_name)
-
-@app.route('/set-expiry/<bucket_name>/<path:object_key>', methods=['POST'])
-@login_required
-def set_expiry(bucket_name, object_key):
-    s3 = get_s3_client()
-    try:
-        s3.put_object_tagging(
-            Bucket=bucket_name,
-            Key=object_key,
-            Tagging={
-                'TagSet': [
-                    {'Key': 'expiry', 'Value': '30-days'}
-                ]
-            }
-        )
-        action = f"Set 30-day expiry for object '{object_key}' in bucket '{bucket_name}'"
-        log = ActionLog(user_id=current_user.id, action=action)
+def credentials():
+    if request.method == 'POST':
+        current_user.aws_access_key = request.form['access_key']
+        current_user.aws_secret_key = request.form['secret_key']
+        db.session.commit()
+        log = ActionLog(user_id=current_user.id, action="Updated AWS credentials")
         db.session.add(log)
         db.session.commit()
-        flash("Expiry set successfully.")
-    except Exception as e:
-        flash("Failed to set expiry: " + str(e))
-    return redirect(url_for('get_objects', bucket_name=bucket_name))
+        flash("Credentials updated successfully.")
+    return render_template('credentials.html')
+
+@app.route('/logs')
+@login_required
+def logs():
+    logs = ActionLog.query.filter_by(user_id=current_user.id).order_by(ActionLog.timestamp.desc()).all()
+    return render_template('logs.html', logs=logs)
 
 if __name__ == '__main__':
     with app.app_context():

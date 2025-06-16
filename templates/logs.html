@@ -1,0 +1,19 @@
+{% extends "layout.html" %}
+{% block title %}My Action Logs{% endblock %}
+{% block content %}
+<main class="auth-container">
+    <div class="auth-card">
+        <h2 class="auth-title">Your Activity Log</h2>
+        {% if logs %}
+        <ul>
+            {% for log in logs %}
+                <li>{{ log.timestamp.strftime("%Y-%m-%d %H:%M:%S") }} - {{ log.action }}</li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p>No logs available yet.</p>
+        {% endif %}
+    </div>
+</main>
+{% endblock %}
+
