@@ -102,10 +102,10 @@ def log_action(user_id, action):
 
 @app.route('/')
 def home():
-    """Redirects to dashboard if logged in, otherwise to login page."""
+    """Redirects to dashboard if logged in, otherwise shows the landing page."""
     if 'user_id' in session:
         return redirect(url_for('dashboard'))
-    return redirect(url_for('login'))
+    return render_template('landing.html', datetime=datetime)
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
