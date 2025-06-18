@@ -1,0 +1,16 @@
+<!-- templates/s3_objects.html -->
+{% extends "base.html" %}
+{% block content %}
+<h2>Objects in Bucket: {{ bucket_name }}</h2>
+<ul>
+  {% if objects %}
+    {% for obj in objects %}
+      <li>{{ obj.Key }} ({{ obj.Size }} bytes)</li>
+    {% endfor %}
+  {% else %}
+    <li>No objects found.</li>
+  {% endif %}
+</ul>
+<a href="{{ url_for('list_buckets') }}">Back to Buckets</a>
+{% endblock %}
+

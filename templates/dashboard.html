@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - S3 Expiry Manager</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* bg-gray-100 */
+        }
+        .flash-success { background-color: #d1fae5; color: #065f46; }
+        .flash-error { background-color: #fee2e2; color: #991b1b; }
+        .flash-info { background-color: #e0f2fe; color: #1e40af; }
+        .flash-warning { background-color: #fffbeb; color: #92400e; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+    <header class="bg-blue-600 text-white p-4 shadow-md">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold">S3 Expiry Manager</h1>
+            <nav>
+                <ul class="flex space-x-4">
+                    <li><a href="{{ url_for('dashboard') }}" class="hover:text-blue-200 font-medium">Dashboard</a></li>
+                    <li><a href="{{ url_for('buckets') }}" class="hover:text-blue-200 font-medium">Buckets</a></li>
+                    <li><a href="{{ url_for('view_logs') }}" class="hover:text-blue-200 font-medium">Action Logs</a></li>
+                    <li><a href="{{ url_for('logout') }}" class="bg-red-500 hover:bg-red-600 py-1 px-3 rounded-md text-sm font-medium transition duration-200">Logout</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8 flex-grow">
+        <div class="bg-white p-8 rounded-lg shadow-xl">
+            <h2 class="text-3xl font-extrabold text-gray-900 mb-6">Hello, {{ username }}!</h2>
+
+            {# Flash messages display area #}
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="mb-6">
+                        {% for category, message in messages %}
+                            <div class="px-4 py-3 rounded-md mb-2 text-sm {{ 'flash-' + category }}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">Your AWS Credentials</h3>
+                    <p class="text-gray-600 mb-4">Enter or update your AWS Access Key ID and Secret Access Key to manage your S3 buckets.</p>
+                    <form action="{{ url_for('credentials') }}" method="POST" class="space-y-4">
+                        <div>
+                            <label for="access_key" class="block text-gray-700 text-sm font-medium mb-2">AWS Access Key ID</label>
+                            <input 
+                                type="text" 
+                                id="access_key" 
+                                name="access_key" 
+                                class="appearance-none border border-gray-300 rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200" 
+                                placeholder="Enter your AWS Access Key ID"
+                                required
+                            >
+                        </div>
+                        <div>
+                            <label for="secret_key" class="block text-gray-700 text-sm font-medium mb-2">AWS Secret Access Key</label>
+                            <input 
+                                type="password" 
+                                id="secret_key" 
+                                name="secret_key" 
+                                class="appearance-none border border-gray-300 rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200" 
+                                placeholder="Enter your AWS Secret Access Key"
+                                required
+                            >
+                        </div>
+                        <button 
+                            type="submit" 
+                            class="bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-semibold py-3 px-6 rounded-lg focus:outline-none focus:ring-4 focus:ring-indigo-300 transition duration-300 ease-in-out transform hover:-translate-y-0.5"
+                        >
+                            Save Credentials
+                        </button>
+                    </form>
+                </div>
+
+                <div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">Quick Actions</h3>
+                    <p class="text-gray-600 mb-4">Quickly navigate to manage your S3 resources or view your activity logs.</p>
+                    <div class="space-y-4">
+                        <a href="{{ url_for('buckets') }}" 
+                           class="block bg-green-500 hover:bg-green-600 active:bg-green-700 text-white text-center font-semibold py-3 px-6 rounded-lg focus:outline-none focus:ring-4 focus:ring-green-300 transition duration-300 ease-in-out transform hover:-translate-y-0.5">
+                            View S3 Buckets
+                        </a>
+                        <a href="{{ url_for('view_logs') }}" 
+                           class="block bg-purple-500 hover:bg-purple-600 active:bg-purple-700 text-white text-center font-semibold py-3 px-6 rounded-lg focus:outline-none focus:ring-4 focus:ring-purple-300 transition duration-300 ease-in-out transform hover:-translate-y-0.5">
+                            View Action Logs
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-gray-800 text-white p-4 text-center mt-8">
+        <div class="container mx-auto">
+            <p>&copy; {{ datetime.now().year }} S3 Expiry Manager. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+</html>
+

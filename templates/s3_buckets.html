@@ -1,0 +1,11 @@
+<!-- templates/s3_buckets.html -->
+{% extends "base.html" %}
+{% block content %}
+<h2>Your S3 Buckets</h2>
+<ul>
+  {% for bucket in buckets %}
+    <li><a href="{{ url_for('list_objects', bucket_name=bucket.Name) }}">{{ bucket.Name }}</a></li>
+  {% endfor %}
+</ul>
+{% endblock %}
+

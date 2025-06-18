@@ -1,23 +1,85 @@
-{% extends "layout.html" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - S3 Expiry Manager</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* bg-gray-100 */
+        }
+        .flash-success {
+            background-color: #d1fae5; /* green-100 */
+            color: #065f46; /* green-800 */
+        }
+        .flash-error {
+            background-color: #fee2e2; /* red-100 */
+            color: #991b1b; /* red-800 */
+        }
+        .flash-info {
+            background-color: #e0f2fe; /* blue-100 */
+            color: #1e40af; /* blue-800 */
+        }
+        .flash-warning {
+            background-color: #fffbeb; /* yellow-100 */
+            color: #92400e; /* yellow-800 */
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen">
+    <div class="bg-white p-8 rounded-lg shadow-xl max-w-md w-full">
+        <h2 class="text-3xl font-extrabold text-center text-gray-900 mb-6">Create Account</h2>
 
-{% block title %}Register - S3 Expiry Manager{% endblock %}
+        {# Flash messages display area #}
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="mb-4">
+                    {% for category, message in messages %}
+                        <div class="px-4 py-3 rounded-md mb-2 text-sm {{ 'flash-' + category }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
 
-{% block content %}
-<main class="auth-container">
-    <div class="auth-card">
-        <h2 class="auth-title">Register</h2>
-        <form method="POST" action="{{ url_for('register') }}">
-            <div class="form-group">
-                <label for="email">Email</label>
-                <input type="email" id="email" name="email" required>
+        <form action="{{ url_for('register') }}" method="POST" class="space-y-5">
+            <div>
+                <label for="username" class="block text-gray-700 text-sm font-medium mb-2">Username</label>
+                <input 
+                    type="text" 
+                    id="username" 
+                    name="username" {# CRUCIAL: This matches Flask's request.form['username'] #}
+                    class="appearance-none border border-gray-300 rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition duration-200" 
+                    placeholder="Choose a username"
+                    required
+                >
             </div>
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" required>
+            <div>
+                <label for="password" class="block text-gray-700 text-sm font-medium mb-2">Password</label>
+                <input 
+                    type="password" 
+                    id="password" 
+                    name="password" {# CRUCIAL: This matches Flask's request.form['password'] #}
+                    class="appearance-none border border-gray-300 rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition duration-200" 
+                    placeholder="Choose a password"
+                    required
+                >
             </div>
-            <button type="submit" class="btn btn-primary auth-btn">Register</button>
+            <button 
+                type="submit" 
+                class="bg-green-600 hover:bg-green-700 active:bg-green-800 text-white font-semibold py-3 px-6 rounded-lg focus:outline-none focus:ring-4 focus:ring-green-300 transition duration-300 ease-in-out w-full transform hover:-translate-y-0.5"
+            >
+                Register
+            </button>
         </form>
-        <p class="auth-switch">Already have an account? <a href="{{ url_for('login') }}">Log In here</a></p>
+        <p class="text-center text-gray-600 text-sm mt-8">
+            Already have an account? <a href="{{ url_for('login') }}" class="text-blue-600 hover:text-blue-800 font-bold">Login here</a>
+        </p>
     </div>
-</main>
-{% endblock %}
+</body>
+</html>
+
