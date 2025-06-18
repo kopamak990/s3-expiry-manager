@@ -156,8 +156,15 @@ def dashboard():
     if 'user_id' not in session:
         flash('Please log in to access the dashboard.', 'warning')
         return redirect(url_for('login'))
+    
+    # --- New Feature: Display Total Users ---
+    total_users = User.query.count()
+
     # Pass datetime object to template for copyright year
-    return render_template('dashboard.html', username=session['username'], datetime=datetime)
+    return render_template('dashboard.html', 
+                           username=session['username'], 
+                           datetime=datetime,
+                           total_users=total_users)
 
 @app.route('/credentials', methods=['POST'])
 def credentials():
@@ -253,6 +260,7 @@ def bucket_objects(bucket_name):
     except Exception as e:
         flash(f'Error listing objects in bucket {bucket_name}: {e}', 'error')
         # Ensure datetime is passed even in error case to prevent template rendering issues
+        # Provide an empty list for objects to prevent Jinja2 errors if they are iterated
         return render_template('buckets.html', buckets=[], datetime=datetime) # Redirect back to buckets list on error
 
 @app.route('/download/<bucket>/<path:key>')
@@ -290,57 +298,67 @@ def delete_object(bucket, key):
 
 @app.route('/expiry/<bucket>/<path:key>', methods=['POST'])
 def set_expiry(bucket, key):
-    """Sets a lifecycle rule to expire an S3 object after a specified number of days."""
+    """Sets a lifecycle rule to expire an S3 object after a specified number of days, or removes it."""
     if 'user_id' not in session:
         flash('Please log in to set expiry.', 'warning')
         return redirect(url_for('login'))
     try:
-        days = int(request.form['days'])
-        if days <= 0:
-            flash('Days must be a positive integer.', 'error')
-            return redirect(url_for('bucket_objects', bucket_name=bucket))
-
-        # Calculate expiration date in UTC (ISO 8601 format required by S3)
-        expiration_date = (datetime.utcnow() + timedelta(days=days)).strftime('%Y-%m-%dT%H:%M:%S.000Z')
+        days_str = request.form['days']
 
         s3 = get_s3_client()
         
-        # Define the new lifecycle rule for the specific object prefix
-        new_rule = {
-            'ID': f'expire-{key.replace("/", "-")}-{datetime.now().timestamp()}', # Unique ID for the rule
-            'Prefix': key, # Applies the rule to objects matching this prefix (i.e., the specific object)
-            'Status': 'Enabled',
-            'Expiration': {'Date': expiration_date}
-        }
-
-        # Attempt to retrieve existing lifecycle rules to avoid overwriting them.
-        # S3's PutBucketLifecycleConfiguration replaces ALL existing rules.
+        # Get existing lifecycle rules to avoid overwriting them.
         existing_rules = []
         try:
             response = s3.get_bucket_lifecycle_configuration(Bucket=bucket)
             existing_rules = response.get('Rules', [])
         except s3.exceptions.NoSuchLifecycleConfiguration:
-            # This exception is raised if no lifecycle configuration exists on the bucket
-            pass
+            pass # No existing rules, start with an empty list
         except Exception as e:
             print(f"Warning: Could not retrieve existing lifecycle configuration for '{bucket}': {e}")
 
-        # Filter out any existing rule that might conflict with the new prefix, then add the new rule.
-        # This ensures we don't duplicate or have conflicting rules for the same object.
+        # Filter out any existing rule that might conflict with the new prefix (the object itself).
         updated_rules = [rule for rule in existing_rules if rule.get('Prefix') != key]
-        updated_rules.append(new_rule)
-        
-        lifecycle_config_payload = {'Rules': updated_rules}
 
-        s3.put_bucket_lifecycle_configuration(Bucket=bucket, LifecycleConfiguration=lifecycle_config_payload)
-        
-        log_action(session['user_id'], f"Set expiry for {key} in {bucket} after {days} days")
-        flash(f"Expiry set for object '{key}' after {days} days in bucket '{bucket}'.", 'success')
-    except ValueError:
-        flash('Invalid number of days. Please enter an integer.', 'error')
+        if days_str == 'never': # Special value to remove expiry
+            if len(updated_rules) == 0:
+                # If no other rules exist after removing, delete the entire configuration
+                s3.delete_bucket_lifecycle_configuration(Bucket=bucket)
+                log_action(session['user_id'], f"Removed all expiry rules from {bucket}")
+                flash(f"Expiry rule removed for object '{key}' in bucket '{bucket}'.", 'success')
+            else:
+                # If other rules exist, just update with the filtered list
+                lifecycle_config_payload = {'Rules': updated_rules}
+                s3.put_bucket_lifecycle_configuration(Bucket=bucket, LifecycleConfiguration=lifecycle_config_payload)
+                log_action(session['user_id'], f"Removed expiry rule for {key} in {bucket}")
+                flash(f"Expiry rule removed for object '{key}' in bucket '{bucket}'.", 'success')
+        else:
+            try:
+                days = int(days_str)
+                if days <= 0:
+                    flash('Days must be a positive integer to set expiry.', 'error')
+                    return redirect(url_for('bucket_objects', bucket_name=bucket))
+
+                expiration_date = (datetime.utcnow() + timedelta(days=days)).strftime('%Y-%m-%dT%H:%M:%S.000Z')
+
+                new_rule = {
+                    'ID': f'expire-{key.replace("/", "-")}-{datetime.now().timestamp()}', # Unique ID
+                    'Prefix': key,
+                    'Status': 'Enabled',
+                    'Expiration': {'Date': expiration_date}
+                }
+                updated_rules.append(new_rule)
+                
+                lifecycle_config_payload = {'Rules': updated_rules}
+                s3.put_bucket_lifecycle_configuration(Bucket=bucket, LifecycleConfiguration=lifecycle_config_payload)
+                
+                log_action(session['user_id'], f"Set expiry for {key} in {bucket} after {days} days")
+                flash(f"Expiry set for object '{key}' after {days} days in bucket '{bucket}'.", 'success')
+            except ValueError:
+                flash('Invalid number of days. Please enter a positive integer or select "Never Expire".', 'error')
     except Exception as e:
-        flash(f'Error setting expiry for {key}: {e}', 'error')
-        print(f"Error setting expiry: {e}") # Log for debugging
+        flash(f'Error setting/removing expiry for {key}: {e}', 'error')
+        print(f"Error setting/removing expiry: {e}") # Log for debugging
     return redirect(url_for('bucket_objects', bucket_name=bucket))
 
 @app.route('/logs')
@@ -363,5 +381,4 @@ if __name__ == "__main__":
         db.create_all()
     # Run the Flask development server.
     # For production, NEVER use debug=True. Use a WSGI server like Gunicorn/uWSGI.
-    app.run(debug=False) # Changed to False for production readiness!
-
+    app.run(debug=False) # Production-ready: debug=False

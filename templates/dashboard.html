@@ -1,113 +1,82 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - S3 Expiry Manager</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6; /* bg-gray-100 */
-        }
-        .flash-success { background-color: #d1fae5; color: #065f46; }
-        .flash-error { background-color: #fee2e2; color: #991b1b; }
-        .flash-info { background-color: #e0f2fe; color: #1e40af; }
-        .flash-warning { background-color: #fffbeb; color: #92400e; }
-    </style>
-</head>
-<body class="min-h-screen flex flex-col">
-    <header class="bg-blue-600 text-white p-4 shadow-md">
-        <div class="container mx-auto flex justify-between items-center">
-            <h1 class="text-2xl font-bold">S3 Expiry Manager</h1>
-            <nav>
-                <ul class="flex space-x-4">
-                    <li><a href="{{ url_for('dashboard') }}" class="hover:text-blue-200 font-medium">Dashboard</a></li>
-                    <li><a href="{{ url_for('buckets') }}" class="hover:text-blue-200 font-medium">Buckets</a></li>
-                    <li><a href="{{ url_for('view_logs') }}" class="hover:text-blue-200 font-medium">Action Logs</a></li>
-                    <li><a href="{{ url_for('logout') }}" class="bg-red-500 hover:bg-red-600 py-1 px-3 rounded-md text-sm font-medium transition duration-200">Logout</a></li>
-                </ul>
-            </nav>
-        </div>
-    </header>
+{% extends 'base.html' %}
 
-    <main class="container mx-auto px-4 py-8 flex-grow">
-        <div class="bg-white p-8 rounded-lg shadow-xl">
-            <h2 class="text-3xl font-extrabold text-gray-900 mb-6">Hello, {{ username }}!</h2>
+{% block title %}Dashboard - S3Guard{% endblock %}
 
-            {# Flash messages display area #}
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    <div class="mb-6">
-                        {% for category, message in messages %}
-                            <div class="px-4 py-3 rounded-md mb-2 text-sm {{ 'flash-' + category }}">
-                                {{ message }}
-                            </div>
-                        {% endfor %}
-                    </div>
-                {% endif %}
-            {% endwith %}
+{% block content %}
+    <div class="bg-white p-8 rounded-lg shadow-xl border border-gray-200">
+        <h2 class="text-4xl font-extrabold text-gray-900 mb-8 text-center">Hello, {{ username }}!</h2>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div>
-                    <h3 class="text-xl font-bold text-gray-800 mb-4">Your AWS Credentials</h3>
-                    <p class="text-gray-600 mb-4">Enter or update your AWS Access Key ID and Secret Access Key to manage your S3 buckets.</p>
-                    <form action="{{ url_for('credentials') }}" method="POST" class="space-y-4">
-                        <div>
-                            <label for="access_key" class="block text-gray-700 text-sm font-medium mb-2">AWS Access Key ID</label>
-                            <input 
-                                type="text" 
-                                id="access_key" 
-                                name="access_key" 
-                                class="appearance-none border border-gray-300 rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200" 
-                                placeholder="Enter your AWS Access Key ID"
-                                required
-                            >
-                        </div>
-                        <div>
-                            <label for="secret_key" class="block text-gray-700 text-sm font-medium mb-2">AWS Secret Access Key</label>
-                            <input 
-                                type="password" 
-                                id="secret_key" 
-                                name="secret_key" 
-                                class="appearance-none border border-gray-300 rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200" 
-                                placeholder="Enter your AWS Secret Access Key"
-                                required
-                            >
-                        </div>
-                        <button 
-                            type="submit" 
-                            class="bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-semibold py-3 px-6 rounded-lg focus:outline-none focus:ring-4 focus:ring-indigo-300 transition duration-300 ease-in-out transform hover:-translate-y-0.5"
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
+            {# Overall Statistics Card #}
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 shadow-md">
+                <h3 class="text-xl font-bold text-blue-800 mb-4 flex items-center">
+                    <svg class="w-6 h-6 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path></svg>
+                    Overall Statistics
+                </h3>
+                <p class="text-gray-700 text-lg mb-2">Total Registered Users: <span class="font-bold text-blue-700">{{ total_users }}</span></p>
+                <p class="text-gray-600 text-sm">Growing our community of cloud managers!</p>
+            </div>
+
+            {# AWS Credentials Management Card #}
+            <div class="bg-white border border-gray-200 rounded-lg p-6 shadow-md">
+                <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                    <svg class="w-6 h-6 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2V9a2 2 0 012-2h2zm0 7v3m-4-3v3m-4-3v3M6 18h2a2 2 0 002-2v-4a2 2 0 00-2-2H6a2 2 0 00-2 2v4a2 2 0 002 2z"></path></svg>
+                    Your AWS Credentials
+                </h3>
+                <p class="text-gray-600 mb-5">Securely store your AWS Access Keys to manage your S3 resources.</p>
+                <form action="{{ url_for('credentials') }}" method="POST" class="space-y-4">
+                    <div>
+                        <label for="access_key" class="block text-gray-700 text-sm font-medium mb-2">AWS Access Key ID</label>
+                        <input 
+                            type="text" 
+                            id="access_key" 
+                            name="access_key" 
+                            class="appearance-none border border-gray-300 rounded-lg w-full py-2.5 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200 shadow-sm" 
+                            placeholder="Enter your AWS Access Key ID"
+                            required
                         >
-                            Save Credentials
-                        </button>
-                    </form>
-                </div>
-
-                <div>
-                    <h3 class="text-xl font-bold text-gray-800 mb-4">Quick Actions</h3>
-                    <p class="text-gray-600 mb-4">Quickly navigate to manage your S3 resources or view your activity logs.</p>
-                    <div class="space-y-4">
-                        <a href="{{ url_for('buckets') }}" 
-                           class="block bg-green-500 hover:bg-green-600 active:bg-green-700 text-white text-center font-semibold py-3 px-6 rounded-lg focus:outline-none focus:ring-4 focus:ring-green-300 transition duration-300 ease-in-out transform hover:-translate-y-0.5">
-                            View S3 Buckets
-                        </a>
-                        <a href="{{ url_for('view_logs') }}" 
-                           class="block bg-purple-500 hover:bg-purple-600 active:bg-purple-700 text-white text-center font-semibold py-3 px-6 rounded-lg focus:outline-none focus:ring-4 focus:ring-purple-300 transition duration-300 ease-in-out transform hover:-translate-y-0.5">
-                            View Action Logs
-                        </a>
                     </div>
-                </div>
+                    <div>
+                        <label for="secret_key" class="block text-gray-700 text-sm font-medium mb-2">AWS Secret Access Key</label>
+                        <input 
+                            type="password" 
+                            id="secret_key" 
+                            name="secret_key" 
+                            class="appearance-none border border-gray-300 rounded-lg w-full py-2.5 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200 shadow-sm" 
+                            placeholder="Enter your AWS Secret Access Key"
+                            required
+                        >
+                    </div>
+                    <button 
+                        type="submit" 
+                        class="bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-semibold py-2.5 px-5 rounded-lg focus:outline-none focus:ring-4 focus:ring-indigo-300 transition duration-300 ease-in-out transform hover:-translate-y-0.5 shadow-md w-full"
+                    >
+                        Save Credentials
+                    </button>
+                </form>
             </div>
         </div>
-    </main>
 
-    <footer class="bg-gray-800 text-white p-4 text-center mt-8">
-        <div class="container mx-auto">
-            <p>&copy; {{ datetime.now().year }} S3 Expiry Manager. All rights reserved.</p>
+        {# Quick Actions Card #}
+        <div class="bg-white border border-gray-200 rounded-lg p-6 shadow-md">
+            <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                <svg class="w-6 h-6 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                Quick Actions
+            </h3>
+            <p class="text-gray-600 mb-5">Jump directly to your S3 resources or review past activities.</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <a href="{{ url_for('buckets') }}" 
+                   class="bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 text-white text-center font-semibold py-3 px-6 rounded-lg focus:outline-none focus:ring-4 focus:ring-emerald-300 transition duration-300 ease-in-out transform hover:-translate-y-0.5 shadow-md flex items-center justify-center">
+                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm0 4a1 1 0 011-1h12a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1V8zm0 5a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1v-2z" clip-rule="evenodd"></path></svg>
+                    View S3 Buckets
+                </a>
+                <a href="{{ url_for('view_logs') }}" 
+                   class="bg-teal-500 hover:bg-teal-600 active:bg-teal-700 text-white text-center font-semibold py-3 px-6 rounded-lg focus:outline-none focus:ring-4 focus:ring-teal-300 transition duration-300 ease-in-out transform hover:-translate-y-0.5 shadow-md flex items-center justify-center">
+                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 2a8 8 0 100 16 8 8 0 000-16zM6 9a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"></path></svg>
+                    View Action Logs
+                </a>
+            </div>
         </div>
-    </footer>
-</body>
-</html>
+    </div>
+{% endblock %}
 

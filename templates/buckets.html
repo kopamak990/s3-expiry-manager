@@ -1,77 +1,39 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>S3 Buckets - S3 Expiry Manager</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6; /* bg-gray-100 */
-        }
-        .flash-success { background-color: #d1fae5; color: #065f46; }
-        .flash-error { background-color: #fee2e2; color: #991b1b; }
-        .flash-info { background-color: #e0f2fe; color: #1e40af; }
-        .flash-warning { background-color: #fffbeb; color: #92400e; }
-    </style>
-</head>
-<body class="min-h-screen flex flex-col">
-    <header class="bg-blue-600 text-white p-4 shadow-md">
-        <div class="container mx-auto flex justify-between items-center">
-            <h1 class="text-2xl font-bold">S3 Expiry Manager</h1>
-            <nav>
-                <ul class="flex space-x-4">
-                    <li><a href="{{ url_for('dashboard') }}" class="hover:text-blue-200 font-medium">Dashboard</a></li>
-                    <li><a href="{{ url_for('buckets') }}" class="hover:text-blue-200 font-medium">Buckets</a></li>
-                    <li><a href="{{ url_for('view_logs') }}" class="hover:text-blue-200 font-medium">Action Logs</a></li>
-                    <li><a href="{{ url_for('logout') }}" class="bg-red-500 hover:bg-red-600 py-1 px-3 rounded-md text-sm font-medium transition duration-200">Logout</a></li>
-                </ul>
-            </nav>
-        </div>
-    </header>
+{% extends 'base.html' %}
 
-    <main class="container mx-auto px-4 py-8 flex-grow">
-        <div class="bg-white p-8 rounded-lg shadow-xl">
-            <h2 class="text-3xl font-extrabold text-gray-900 mb-6">Your S3 Buckets</h2>
+{% block title %}S3 Buckets - S3Guard{% endblock %}
 
-            {# Flash messages display area #}
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    <div class="mb-6">
-                        {% for category, message in messages %}
-                            <div class="px-4 py-3 rounded-md mb-2 text-sm {{ 'flash-' + category }}">
-                                {{ message }}
-                            </div>
-                        {% endfor %}
-                    </div>
-                {% endif %}
-            {% endwith %}
+{% block content %}
+    <div class="bg-white p-8 rounded-lg shadow-xl border border-gray-200">
+        <h2 class="text-3xl font-extrabold text-gray-900 mb-6">Your S3 Buckets</h2>
 
-            {% if buckets %}
-                <ul class="space-y-4">
-                    {% for bucket in buckets %}
-                        <li class="bg-gray-50 p-4 rounded-lg shadow-sm flex items-center justify-between">
-                            <span class="text-lg font-semibold text-gray-800">{{ bucket.Name }}</span>
-                            <a href="{{ url_for('bucket_objects', bucket_name=bucket.Name) }}" 
-                               class="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg text-sm transition duration-200">
-                               View Objects
-                            </a>
-                        </li>
-                    {% endfor %}
-                </ul>
-            {% else %}
-                <p class="text-gray-600">No S3 buckets found or configured. Please check your AWS credentials.</p>
-            {% endif %}
-        </div>
-    </main>
+        <a href="{{ url_for('dashboard') }}" class="inline-flex items-center bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-lg text-sm mb-6 transition duration-200 transform hover:-translate-y-0.5 shadow-sm">
+            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd"></path></svg>
+            Back to Dashboard
+        </a>
 
-    <footer class="bg-gray-800 text-white p-4 text-center mt-8">
-        <div class="container mx-auto">
-            <p>&copy; {{ datetime.now().year }} S3 Expiry Manager. All rights reserved.</p>
-        </div>
-    </footer>
-</body>
-</html>
+        {% if buckets %}
+            <ul class="space-y-4">
+                {% for bucket in buckets %}
+                    <li class="bg-gray-50 p-5 rounded-lg shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between border border-gray-100 transition duration-200 hover:shadow-md hover:border-blue-300">
+                        <div class="mb-2 md:mb-0">
+                            <span class="text-xl font-semibold text-gray-800">{{ bucket.Name }}</span>
+                            <p class="text-sm text-gray-500">
+                                Created: {{ bucket.CreationDate.strftime('%Y-%m-%d %H:%M:%S UTC') if bucket.CreationDate else 'N/A' }}
+                            </p>
+                        </div>
+                        <a href="{{ url_for('bucket_objects', bucket_name=bucket.Name) }}" 
+                           class="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold py-2 px-4 rounded-lg text-sm shadow-md transition duration-300 ease-in-out transform hover:-translate-y-0.5">
+                           View Objects
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <div class="p-6 bg-yellow-50 border border-yellow-200 rounded-lg text-yellow-800 text-center">
+                <p class="text-lg font-semibold mb-2">No S3 buckets found!</p>
+                <p>Please ensure your AWS credentials are correctly set on the <a href="{{ url_for('dashboard') }}" class="font-bold underline hover:text-yellow-900">Dashboard</a> and have the necessary S3 permissions.</p>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}
 
