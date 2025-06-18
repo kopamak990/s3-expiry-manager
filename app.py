@@ -10,7 +10,6 @@ from urllib.parse import quote
 
 # Import Fernet for symmetric encryption of sensitive data
 from cryptography.fernet import Fernet
-# Note: base64.urlsafe_b64encode is not explicitly used here as Fernet handles its own encoding/decoding internally for the key
 
 # --- Application Initialization and Configuration ---
 app = Flask(__name__)
@@ -228,10 +227,12 @@ def buckets():
         response = s3.list_buckets()
         buckets_list = response['Buckets']
         flash('Successfully loaded S3 buckets.', 'success')
-        return render_template('buckets.html', buckets=buckets_list)
+        # Ensure datetime is passed to the template
+        return render_template('buckets.html', buckets=buckets_list, datetime=datetime)
     except Exception as e:
         flash(f'Error listing buckets: {e}', 'error')
-        return redirect(url_for('dashboard')) # Redirect back to dashboard on error
+        # Ensure datetime is passed even in error case to prevent template rendering issues
+        return render_template('dashboard.html', username=session['username'], datetime=datetime) # Redirect back to dashboard on error
 
 @app.route('/buckets/<bucket_name>')
 def bucket_objects(bucket_name):
@@ -247,10 +248,12 @@ def bucket_objects(bucket_name):
         for obj in objects:
             obj['Key_quoted'] = quote(obj['Key'], safe='') 
         flash(f'Successfully loaded objects for bucket: {bucket_name}.', 'success')
-        return render_template('bucket_objects.html', bucket=bucket_name, objects=objects)
+        # Ensure datetime is passed to the template
+        return render_template('bucket_objects.html', bucket=bucket_name, objects=objects, datetime=datetime)
     except Exception as e:
         flash(f'Error listing objects in bucket {bucket_name}: {e}', 'error')
-        return redirect(url_for('buckets')) # Redirect back to buckets list on error
+        # Ensure datetime is passed even in error case to prevent template rendering issues
+        return render_template('buckets.html', buckets=[], datetime=datetime) # Redirect back to buckets list on error
 
 @app.route('/download/<bucket>/<path:key>')
 def download_object(bucket, key):
@@ -360,4 +363,5 @@ if __name__ == "__main__":
         db.create_all()
     # Run the Flask development server.
     # For production, NEVER use debug=True. Use a WSGI server like Gunicorn/uWSGI.
-    app.run(debug=True) # <<< IMPORTANT: Change to debug=False for production!
+    app.run(debug=False) # Changed to False for production readiness!
+
