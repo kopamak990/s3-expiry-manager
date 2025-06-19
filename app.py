@@ -5,6 +5,7 @@ import boto3
 from botocore.exceptions import ClientError
 import os
 from datetime import datetime, timedelta
+import json # Added for parsing S3 bucket policies
 
 # Required for URL quoting (e.g., for object keys with special characters)
 from urllib.parse import quote
@@ -180,8 +181,8 @@ def check_public_buckets(s3_client):
                             'Principal' in statement and
                             (statement['Principal'] == '*' or (isinstance(statement['Principal'], dict) and statement['Principal'].get('AWS') == '*')) and
                             'Action' in statement and
-                            (isinstance(statement['Action'], str) and ('s3:GetObject' in statement['Action'] or statement['Action'] == '*')) or
-                            (isinstance(statement['Action'], list) and ('s3:GetObject' in statement['Action'] or '*' in statement['Action']))):
+                            ((isinstance(statement['Action'], str) and ('s3:GetObject' in statement['Action'] or statement['Action'] == '*')) or
+                             (isinstance(statement['Action'], list) and ('s3:GetObject' in statement['Action'] or '*' in statement['Action'])))):
                             
                             # Further check if Condition allows public access to specific resources if any
                             # For simplicity, if Principal is '*' and GetObject is allowed, we mark as public
@@ -213,6 +214,34 @@ def check_public_buckets(s3_client):
 
     return public_buckets
 
+# --- New Function to Calculate Total S3 Storage ---
+def get_total_s3_storage_mb(s3_client):
+    total_size_bytes = 0
+    num_objects = 0
+    try:
+        response = s3_client.list_buckets()
+        for bucket in response['Buckets']:
+            bucket_name = bucket['Name']
+            paginator = s3_client.get_paginator('list_objects_v2')
+            pages = paginator.paginate(Bucket=bucket_name)
+            
+            for page in pages:
+                if 'Contents' in page:
+                    for obj in page['Contents']:
+                        total_size_bytes += obj['Size']
+                        num_objects += 1
+    except ClientError as e:
+        flash(f"Error retrieving S3 storage data: {e}", 'error')
+        print(f"Error retrieving S3 storage data: {e}")
+        return 0, 0 # Return 0 if error
+    except Exception as e:
+        flash(f"An unexpected error occurred while calculating storage: {e}", 'error')
+        print(f"An unexpected error occurred while calculating storage: {e}")
+        return 0, 0 # Return 0 if unexpected error
+
+    total_size_mb = total_size_bytes / (1024 * 1024)
+    return total_size_mb, num_objects
+
 
 @app.route('/dashboard')
 def dashboard():
@@ -222,23 +251,40 @@ def dashboard():
     
     total_users = User.query.count()
     public_buckets_list = []
-    
+    total_s3_storage_mb = 0
+    num_s3_objects = 0
+    estimated_monthly_cost = 0
+
     try:
         s3 = get_s3_client()
-        # Call the new function to check for public buckets
+        
+        # Check for public buckets
         public_buckets_list = check_public_buckets(s3)
         if public_buckets_list:
             flash(f"WARNING: {len(public_buckets_list)} publicly accessible S3 buckets detected!", 'warning')
+        
+        # Get total S3 storage
+        total_s3_storage_mb, num_s3_objects = get_total_s3_storage_mb(s3)
+        
+        # Simplified Cost Estimation: AWS S3 Standard Storage price per GB (approx, subject to region)
+        # As of mid-2024, pricing is typically around $0.023/GB for first 50TB in us-east-1.
+        # For simplicity, we use a fixed value. For a real SaaS, this would be region-aware and tiered.
+        COST_PER_GB_PER_MONTH = 0.023 # Example: $0.023 per GB per month
+        estimated_monthly_cost = (total_s3_storage_mb / 1024) * COST_PER_GB_PER_MONTH # Convert MB to GB
+        
     except Exception as e:
-        # Catch exception from get_s3_client if credentials are bad
-        public_buckets_list = [] # Clear list if client couldn't be initialized
-        print(f"Could not check public buckets due to S3 client error: {e}")
+        # Catch exception from get_s3_client if credentials are bad or other S3 errors
+        print(f"Could not retrieve S3 data for dashboard due to error: {e}")
+        # Flash message already handled by get_s3_client or specific check functions
 
     return render_template('dashboard.html', 
                            username=session['username'], 
                            datetime=datetime,
                            total_users=total_users,
-                           public_buckets=public_buckets_list)
+                           public_buckets=public_buckets_list,
+                           total_s3_storage_mb=total_s3_storage_mb,
+                           num_s3_objects=num_s3_objects,
+                           estimated_monthly_cost=estimated_monthly_cost)
 
 @app.route('/credentials', methods=['POST'])
 def credentials():
@@ -456,3 +502,4 @@ if __name__ == "__main__":
     # Run the Flask development server.
     # For production, NEVER use debug=True. Use a WSGI server like Gunicorn/uWSGI.
     app.run(debug=False) # Production-ready: debug=False
+

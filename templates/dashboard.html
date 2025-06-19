@@ -28,15 +28,31 @@
             </div>
         {% endif %}
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-10">
             {# Overall Statistics Card #}
             <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 shadow-md">
                 <h3 class="text-xl font-bold text-blue-800 mb-4 flex items-center">
                     <svg class="w-6 h-6 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path></svg>
-                    Overall Statistics
+                    Overall App Statistics
                 </h3>
                 <p class="text-gray-700 text-lg mb-2">Total Registered Users: <span class="font-bold text-blue-700">{{ total_users }}</span></p>
                 <p class="text-gray-600 text-sm">Growing our community of cloud managers!</p>
+            </div>
+
+            {# S3 Storage Overview Card #}
+            <div class="bg-green-50 border border-green-200 rounded-lg p-6 shadow-md">
+                <h3 class="text-xl font-bold text-green-800 mb-4 flex items-center">
+                    <svg class="w-6 h-6 mr-2 text-green-600" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm0 4a1 1 0 011-1h12a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1V8zm0 5a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1v-2z" clip-rule="evenodd"></path></svg>
+                    S3 Storage Overview
+                </h3>
+                {% if total_s3_storage_mb is defined and total_s3_storage_mb is not none %}
+                    <p class="text-gray-700 text-lg mb-2">Total S3 Storage: <span class="font-bold text-green-700">{{ "{:,.2f}".format(total_s3_storage_mb) }} MB</span></p>
+                    <p class="text-gray-700 text-lg mb-2">Number of Objects: <span class="font-bold text-green-700">{{ "{:,.0f}".format(num_s3_objects) }}</span></p>
+                    <p class="text-gray-700 text-lg mb-2">Estimated Monthly Cost (Standard): <span class="font-bold text-green-700">${{ "{:,.2f}".format(estimated_monthly_cost) }}</span></p>
+                    <p class="text-gray-600 text-sm">Approximate cost for S3 Standard storage. Optimize with expiry rules!</p>
+                {% else %}
+                    <p class="text-gray-600">Could not retrieve S3 storage data. Please check your AWS credentials and permissions.</p>
+                {% endif %}
             </div>
 
             {# AWS Credentials Management Card #}
@@ -82,7 +98,7 @@
         {# Quick Actions Card #}
         <div class="bg-white border border-gray-200 rounded-lg p-6 shadow-md">
             <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
-                <svg class="w-6 h-6 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                <svg class="w-6 h-6 mr-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                 Quick Actions
             </h3>
             <p class="text-gray-600 mb-5">Jump directly to your S3 resources or review past activities.</p>
