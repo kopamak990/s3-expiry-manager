@@ -5,7 +5,7 @@ import boto3
 from botocore.exceptions import ClientError
 import os
 from datetime import datetime, timedelta
-import json # Added for parsing S3 bucket policies
+import json # Ensure json is imported for parsing S3 bucket policies
 
 # Required for URL quoting (e.g., for object keys with special characters)
 from urllib.parse import quote
@@ -304,7 +304,7 @@ def dashboard():
         estimated_monthly_cost = (total_s3_storage_mb / 1024) * COST_PER_GB_PER_MONTH # Convert MB to GB
         
     except Exception as e:
-        # Catch exception from get_s3_client if credentials are bad or other S3 errors
+        # Catch exception from get_s3_client if credentials are bad
         print(f"Could not retrieve S3 data for dashboard due to error: {e}")
         # Flash message already handled by get_s3_client or specific check functions
 
@@ -344,6 +344,35 @@ def credentials():
         flash(f'Error updating credentials: {e}', 'error')
         print(f"Error updating credentials in DB: {e}") # Log for debugging
     return redirect(url_for('dashboard'))
+
+def get_s3_client():
+    """
+    Helper function to get an S3 client for the logged-in user.
+    Decrypts the AWS Secret Access Key before use.
+    """
+    user = User.query.get(session['user_id'])
+    if not user or not user.aws_access_key or not user.encrypted_aws_secret_key:
+        flash('AWS credentials not found. Please update them in your dashboard.', 'error')
+        # Raise an exception to be caught by calling routes for proper error handling
+        raise Exception("AWS credentials missing for user or not securely configured.") 
+
+    try:
+        # Decrypt the stored secret key before creating the boto3 client
+        decrypted_secret_key = decrypt_secret(user.encrypted_aws_secret_key)
+        return boto3.client(
+            's3',
+            aws_access_key_id=user.aws_access_key,
+            aws_secret_access_key=decrypted_secret_key
+        )
+    except ValueError as ve:
+        # Catch errors if Fernet key is not initialized or decryption fails
+        flash(f'Security configuration error: {ve}. Cannot decrypt AWS secret key.', 'error')
+        print(f"Error decrypting AWS secret key: {ve}") # Log for debugging
+        raise Exception(f"Failed to decrypt AWS secret key: {ve}")
+    except Exception as e:
+        flash(f'Error initializing S3 client: {e}', 'error')
+        print(f"Error initializing S3 client with decrypted key: {e}") # Log for debugging
+        raise Exception(f"S3 client initialization failed: {e}")
 
 @app.route('/buckets')
 def buckets():
@@ -491,18 +520,26 @@ def rules():
         return redirect(url_for('login'))
     
     s3_client = None
+    available_buckets = []
+    all_bucket_rules = {} # Initialize as an empty dictionary
+
     try:
         s3_client = get_s3_client()
         available_buckets = get_s3_bucket_names(s3_client)
     except Exception as e:
-        flash(f"Could not load S3 client or bucket list: {e}", 'error')
-        return render_template('rules.html', datetime=datetime, available_buckets=[], all_bucket_rules={})
+        flash(f"Could not load S3 client or bucket list for rules page: {e}", 'error')
+        print(f"Error on rules page init: {e}")
 
 
     if request.method == 'POST':
         bucket_name = request.form.get('bucket_name')
         rule_type = request.form.get('rule_type') # 'create' or 'delete'
         rule_id_to_delete = request.form.get('rule_id_to_delete') # for delete operation
+
+        if s3_client is None: # If S3 client failed to initialize earlier
+            flash("AWS credentials not configured or invalid. Cannot perform rule operations.", 'error')
+            return redirect(url_for('rules'))
+
 
         if rule_type == 'create':
             tag_key = request.form.get('tag_key')
@@ -547,7 +584,9 @@ def rules():
                 # If so, update it. Otherwise, add as new.
                 found_and_updated = False
                 for i, rule in enumerate(existing_rules):
-                    if rule.get('Filter') == new_rule_filter: # Simple equality check for filter
+                    # Compare filters to determine if it's an update to an existing rule
+                    # S3 Lifecycle Rule IDs are not meant for update matching, filter is
+                    if 'Filter' in rule and rule['Filter'] == new_rule_filter:
                         existing_rules[i] = new_rule # Replace the old rule with the updated one
                         found_and_updated = True
                         break
@@ -596,11 +635,22 @@ def rules():
         return redirect(url_for('rules'))
     
     # GET request: Display existing rules
-    all_bucket_rules = {}
-    for bucket_name in available_buckets:
-        rules_for_bucket = get_bucket_lifecycle_config(s3_client, bucket_name)
-        if rules_for_bucket:
-            all_bucket_rules[bucket_name] = rules_for_bucket
+    # Re-fetch s3_client and available_buckets for GET request rendering
+    s3_client = None
+    available_buckets = []
+    all_bucket_rules = {} # Initialize as an empty dictionary
+
+    try:
+        s3_client = get_s3_client()
+        available_buckets = get_s3_bucket_names(s3_client)
+        for bucket_name in available_buckets:
+            rules_for_bucket = get_bucket_lifecycle_config(s3_client, bucket_name)
+            if rules_for_bucket:
+                all_bucket_rules[bucket_name] = rules_for_bucket
+    except Exception as e:
+        flash(f"Could not load rules data: {e}", 'error')
+        print(f"Error loading rules data for GET request: {e}")
+
 
     return render_template('rules.html', 
                            datetime=datetime, 

@@ -2,6 +2,73 @@
 
 {% block title %}Lifecycle Rules - S3Flow{% endblock %}
 
+{% block head %}
+<style>
+    /* Spinner animation */
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    .spinner {
+        border: 4px solid rgba(0, 0, 0, 0.1);
+        border-left-color: #3b82f6; /* blue-500 */
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        animation: spin 1s linear infinite;
+    }
+</style>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const rulesListSection = document.getElementById('existing-rules-section');
+        if (rulesListSection) {
+            const content = rulesListSection.querySelector('.rules-content');
+            const loading = rulesListSection.querySelector('.rules-loading-spinner');
+            
+            let rulesDataString = rulesListSection.dataset.rulespresent;
+            let rulesData = {};
+            try {
+                // Parse the JSON string from the data attribute. Use || '{}' as a fallback for an empty string.
+                rulesData = JSON.parse(rulesDataString || '{}');
+            } catch (e) {
+                console.error("Error parsing rules data from data-rulespresent:", e);
+                console.error("Raw data that caused the error:", rulesDataString);
+                rulesData = {}; // Fallback to an empty object if parsing fails
+            }
+
+            const hasRulesData = Object.keys(rulesData).length > 0;
+
+            if (content && loading) {
+                if (hasRulesData) {
+                    loading.classList.add('hidden');
+                    content.classList.remove('hidden');
+                } else {
+                    loading.classList.remove('hidden');
+                    content.classList.add('hidden');
+                }
+            }
+        }
+    });
+
+    function showFormLoading(formId, buttonText) {
+        const form = document.getElementById(formId);
+        if (form) {
+            const submitButton = form.querySelector('button[type="submit"]');
+            if (submitButton) {
+                submitButton.disabled = true;
+                submitButton.innerHTML = `<svg class="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>${buttonText}...`;
+            }
+        }
+        return true; // Allow form submission to proceed
+    }
+
+    // Function to confirm rule deletion (used in forms)
+    function confirmDelete() {
+        return confirm('Are you sure you want to remove this rule? This action cannot be undone and will affect your S3 lifecycle configuration.');
+    }
+</script>
+{% endblock %}
+
 {% block content %}
     <div class="bg-white p-8 rounded-lg shadow-xl border border-gray-200">
         <h2 class="text-3xl font-extrabold text-gray-900 mb-6">Automated Lifecycle Rules</h2>
@@ -21,7 +88,7 @@
                 <svg class="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd"></path></svg>
                 Create New Expiry Rule (by Tag)
             </h3>
-            <form action="{{ url_for('rules') }}" method="POST" class="space-y-4">
+            <form id="create-rule-form" action="{{ url_for('rules') }}" method="POST" class="space-y-4" onsubmit="return showFormLoading('create-rule-form', 'Applying Rule');">
                 <input type="hidden" name="rule_type" value="create">
                 <div>
                     <label for="bucket_select" class="block text-gray-700 text-sm font-medium mb-2">Select Bucket</label>
@@ -51,90 +118,100 @@
                     <label for="days_to_expire" class="block text-gray-700 text-sm font-medium mb-2">Expire after (Days)</label>
                     <input type="number" id="days_to_expire" name="days_to_expire" min="1" class="appearance-none border border-gray-300 rounded-lg w-full py-2.5 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 shadow-sm" placeholder="e.g., 30" required>
                 </div>
-                <button type="submit" class="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold py-2.5 px-5 rounded-lg focus:outline-none focus:ring-4 focus:ring-blue-300 transition duration-300 ease-in-out transform hover:-translate-y-0.5 shadow-md w-full">
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold py-2.5 px-5 rounded-lg focus:outline-none focus:ring-4 focus:ring-blue-300 transition duration-300 ease-in-out transform hover:-translate-y-0.5 shadow-md w-full flex items-center justify-center">
                     Create/Update Rule
                 </button>
             </form>
         </div>
 
         {# Existing Rules Section #}
-        <div class="p-6 bg-white border border-gray-200 rounded-lg shadow-md">
+        <div id="existing-rules-section" class="p-6 bg-white border border-gray-200 rounded-lg shadow-md relative min-h-[200px] flex flex-col justify-center items-center" data-rulespresent="{{ all_bucket_rules | tojson | safe }}">
             <h3 class="text-2xl font-bold text-gray-900 mb-5 flex items-center">
                 <svg class="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 14a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 6a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"></path></svg>
                 Existing Lifecycle Rules
             </h3>
-            {% if all_bucket_rules %}
-                {% for bucket_name, rules in all_bucket_rules.items() %}
-                    <h4 class="text-xl font-semibold text-gray-800 mb-3 mt-6">Bucket: {{ bucket_name }}</h4>
-                    <div class="overflow-x-auto rounded-lg shadow-sm border border-gray-100 mb-4">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rule ID</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Filter</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Remove</th>
-                                </tr>
-                            </thead>
-                            <tbody class="bg-white divide-y divide-gray-200">
-                                {% for rule in rules %}
-                                    <tr class="hover:bg-gray-50">
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ rule.ID }}</td>
-                                        <td class="px-6 py-4 text-sm text-gray-600">
-                                            {% if rule.Filter and rule.Filter.get('And') %}
-                                                {% for tag in rule.Filter.And.get('Tags', []) %}
-                                                    <span class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full mr-1 mb-1">{{ tag.Key }}:{{ tag.Value }}</span>
-                                                {% endfor %}
-                                                {% if rule.Filter.And.get('Prefix') %}
-                                                    <span class="inline-block bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full mr-1 mb-1">Prefix: {{ rule.Filter.And.Prefix }}</span>
-                                                {% endif %}
-                                            {% elif rule.Filter and rule.Filter.get('Prefix') %}
-                                                <span class="inline-block bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full mr-1 mb-1">Prefix: {{ rule.Filter.Prefix }}</span>
-                                            {% elif rule.Filter and rule.Filter.get('Tag') %} {# Single tag filter #}
-                                                <span class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full mr-1 mb-1">{{ rule.Filter.Tag.Key }}:{{ rule.Filter.Tag.Value }}</span>
-                                            {% else %}
-                                                All objects in bucket
-                                            {% endif %}
-                                        </td>
-                                        <td class="px-6 py-4 text-sm text-gray-600">
-                                            {% if rule.Expiration %}
-                                                Expire after {{ rule.Expiration.get('Days') }} days
-                                                {% if rule.Expiration.get('Date') %}(On: {{ rule.Expiration.Date | dateformat }}){% endif %}
-                                            {% elif rule.Transitions %}
-                                                Transition to {{ rule.Transitions[0].StorageClass }} after {{ rule.Transitions[0].Days }} days
-                                            {% else %}
-                                                N/A
-                                            {% endif %}
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ 'bg-green-100 text-green-800' if rule.Status == 'Enabled' else 'bg-red-100 text-red-800' }}">
-                                                {{ rule.Status }}
-                                            </span>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
-                                            <form action="{{ url_for('rules') }}" method="POST" onsubmit="return confirm('Are you sure you want to remove this rule?');">
-                                                <input type="hidden" name="rule_type" value="delete">
-                                                <input type="hidden" name="bucket_name" value="{{ bucket_name }}">
-                                                <input type="hidden" name="rule_id_to_delete" value="{{ rule.ID }}">
-                                                <button type="submit" class="text-red-600 hover:text-red-900 transition duration-200">
-                                                    <svg class="w-5 h-5 inline-block" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 000-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
-                                                </button>
-                                            </form>
-                                        </td>
-                                    </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                {% endfor %}
-            {% else %}
-                <div class="p-6 bg-gray-50 border border-gray-200 rounded-lg text-gray-700 text-center">
-                    <p class="text-lg font-semibold mb-2">No lifecycle rules configured yet.</p>
-                    <p>Use the form above to create your first automated rule!</p>
-                </div>
+            
+            {# Loading Spinner #}
+            {% if not all_bucket_rules %}
+            <div class="rules-loading-spinner absolute inset-0 flex flex-col items-center justify-center bg-white bg-opacity-70 z-10 rounded-lg">
+                <div class="spinner"></div>
+                <p class="mt-3 text-blue-700 font-semibold">Loading rules...</p>
+            </div>
             {% endif %}
+
+            <div class="rules-content w-full {{ 'hidden' if not all_bucket_rules else '' }}">
+                {% if all_bucket_rules %}
+                    {% for bucket_name, rules in all_bucket_rules.items() %}
+                        <h4 class="text-xl font-semibold text-gray-800 mb-3 mt-6">Bucket: {{ bucket_name }}</h4>
+                        <div class="overflow-x-auto rounded-lg shadow-sm border border-gray-100 mb-4">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rule ID</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Filter</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Remove</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    {% for rule in rules %}
+                                        <tr class="hover:bg-gray-50">
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ rule.ID }}</td>
+                                            <td class="px-6 py-4 text-sm text-gray-600">
+                                                {% if rule.Filter and rule.Filter.get('And') %}
+                                                    {% for tag in rule.Filter.And.get('Tags', []) %}
+                                                        <span class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full mr-1 mb-1">{{ tag.Key }}:{{ tag.Value }}</span>
+                                                    {% endfor %}
+                                                    {% if rule.Filter.And.get('Prefix') %}
+                                                        <span class="inline-block bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full mr-1 mb-1">Prefix: {{ rule.Filter.And.Prefix }}</span>
+                                                    {% endif %}
+                                                {% elif rule.Filter and rule.Filter.get('Prefix') %}
+                                                    <span class="inline-block bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full mr-1 mb-1">Prefix: {{ rule.Filter.Prefix }}</span>
+                                                {% elif rule.Filter and rule.Filter.get('Tag') %} {# Single tag filter #}
+                                                    <span class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full mr-1 mb-1">{{ rule.Filter.Tag.Key }}:{{ rule.Filter.Tag.Value }}</span>
+                                                {% else %}
+                                                    All objects in bucket
+                                                {% endif %}
+                                            </td>
+                                            <td class="px-6 py-4 text-sm text-gray-600">
+                                                {% if rule.Expiration %}
+                                                    Expire after {{ rule.Expiration.get('Days') }} days
+                                                    {% if rule.Expiration.get('Date') %}(On: {{ rule.Expiration.Date | dateformat }}){% endif %}
+                                                {% elif rule.Transitions %}
+                                                    Transition to {{ rule.Transitions[0].StorageClass }} after {{ rule.Transitions[0].Days }} days
+                                                {% else %}
+                                                    N/A
+                                                {% endif %}
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ 'bg-green-100 text-green-800' if rule.Status == 'Enabled' else 'bg-red-100 text-red-800' }}">
+                                                    {{ rule.Status }}
+                                                </span>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+                                                <form action="{{ url_for('rules') }}" method="POST" onsubmit="return confirmDelete();">
+                                                    <input type="hidden" name="rule_type" value="delete">
+                                                    <input type="hidden" name="bucket_name" value="{{ bucket_name }}">
+                                                    <input type="hidden" name="rule_id_to_delete" value="{{ rule.ID }}">
+                                                    <button type="submit" class="text-red-600 hover:text-red-900 transition duration-200">
+                                                        <svg class="w-5 h-5 inline-block" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 000-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="p-6 bg-gray-50 border border-gray-200 rounded-lg text-gray-700 text-center">
+                        <p class="text-lg font-semibold mb-2">No lifecycle rules configured yet.</p>
+                        <p>Use the form above to create your first automated rule!</p>
+                    </div>
+                {% endif %}
+            </div>
         </div>
     </div>
 {% endblock %}
-
