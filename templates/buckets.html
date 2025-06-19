@@ -1,6 +1,30 @@
 {% extends 'base.html' %}
 
-{% block title %}S3 Buckets - S3Guard{% endblock %}
+{% block title %}S3 Buckets - S3Flow{% endblock %}
+
+{% block head %}
+<script>
+    // Client-side search functionality for objects table
+    function filterObjects() {
+        const searchInput = document.getElementById('objectSearch');
+        const filter = searchInput.value.toLowerCase();
+        const tableBody = document.getElementById('objectTableBody');
+        const rows = tableBody.getElementsByTagName('tr');
+
+        for (let i = 0; i < rows.length; i++) {
+            const keyCell = rows[i].getElementsByTagName('td')[0]; // First column is Key
+            if (keyCell) {
+                const textValue = keyCell.textContent || keyCell.innerText;
+                if (textValue.toLowerCase().indexOf(filter) > -1) {
+                    rows[i].style.display = "";
+                } else {
+                    rows[i].style.display = "none";
+                }
+            }
+        }
+    }
+</script>
+{% endblock %}
 
 {% block content %}
     <div class="bg-white p-8 rounded-lg shadow-xl border border-gray-200">
@@ -36,4 +60,3 @@
         {% endif %}
     </div>
 {% endblock %}
-

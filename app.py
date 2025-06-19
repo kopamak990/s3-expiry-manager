@@ -242,6 +242,37 @@ def get_total_s3_storage_mb(s3_client):
     total_size_mb = total_size_bytes / (1024 * 1024)
     return total_size_mb, num_objects
 
+# --- New Helper Function to get S3 Bucket List ---
+def get_s3_bucket_names(s3_client):
+    bucket_names = []
+    try:
+        response = s3_client.list_buckets()
+        for bucket in response['Buckets']:
+            bucket_names.append(bucket['Name'])
+    except ClientError as e:
+        flash(f"Error listing buckets for rules management: {e}", 'error')
+        print(f"Error listing buckets for rules management: {e}")
+    except Exception as e:
+        flash(f"An unexpected error occurred while listing buckets for rules: {e}", 'error')
+        print(f"An unexpected error occurred while listing buckets for rules: {e}")
+    return bucket_names
+
+# --- New Helper Function to get Lifecycle Configuration for a bucket ---
+def get_bucket_lifecycle_config(s3_client, bucket_name):
+    try:
+        response = s3_client.get_bucket_lifecycle_configuration(Bucket=bucket_name)
+        return response.get('Rules', [])
+    except ClientError as e:
+        if e.response['Error']['Code'] == 'NoSuchLifecycleConfiguration':
+            return [] # No lifecycle configuration exists for this bucket
+        else:
+            print(f"Error getting lifecycle config for {bucket_name}: {e}")
+            flash(f"Error retrieving lifecycle rules for {bucket_name}: {e}", 'error')
+            return []
+    except Exception as e:
+        print(f"Unexpected error getting lifecycle config for {bucket_name}: {e}")
+        flash(f"An unexpected error occurred while retrieving lifecycle rules for {bucket_name}: {e}", 'error')
+        return []
 
 @app.route('/dashboard')
 def dashboard():
@@ -313,35 +344,6 @@ def credentials():
         flash(f'Error updating credentials: {e}', 'error')
         print(f"Error updating credentials in DB: {e}") # Log for debugging
     return redirect(url_for('dashboard'))
-
-def get_s3_client():
-    """
-    Helper function to get an S3 client for the logged-in user.
-    Decrypts the AWS Secret Access Key before use.
-    """
-    user = User.query.get(session['user_id'])
-    if not user or not user.aws_access_key or not user.encrypted_aws_secret_key:
-        flash('AWS credentials not found. Please update them in your dashboard.', 'error')
-        # Raise an exception to be caught by calling routes for proper error handling
-        raise Exception("AWS credentials missing for user or not securely configured.") 
-
-    try:
-        # Decrypt the stored secret key before creating the boto3 client
-        decrypted_secret_key = decrypt_secret(user.encrypted_aws_secret_key)
-        return boto3.client(
-            's3',
-            aws_access_key_id=user.aws_access_key,
-            aws_secret_access_key=decrypted_secret_key
-        )
-    except ValueError as ve:
-        # Catch errors if Fernet key is not initialized or decryption fails
-        flash(f'Security configuration error: {ve}. Cannot decrypt AWS secret key.', 'error')
-        print(f"Error decrypting AWS secret key: {ve}") # Log for debugging
-        raise Exception(f"Failed to decrypt AWS secret key: {ve}")
-    except Exception as e:
-        flash(f'Error initializing S3 client: {e}', 'error')
-        print(f"Error initializing S3 client with decrypted key: {e}") # Log for debugging
-        raise Exception(f"S3 client initialization failed: {e}")
 
 @app.route('/buckets')
 def buckets():
@@ -462,7 +464,7 @@ def set_expiry(bucket, key):
                 expiration_date = (datetime.utcnow() + timedelta(days=days)).strftime('%Y-%m-%dT%H:%M:%S.000Z')
 
                 new_rule = {
-                    'ID': f'expire-{key.replace("/", "-")}-{datetime.now().timestamp()}', # Unique ID
+                    'ID': f'expiry-object-{key.replace("/", "-")}-{datetime.now().timestamp()}', # Unique ID
                     'Prefix': key,
                     'Status': 'Enabled',
                     'Expiration': {'Date': expiration_date}
@@ -480,6 +482,130 @@ def set_expiry(bucket, key):
         flash(f'Error setting/removing expiry for {key}: {e}', 'error')
         print(f"Error setting/removing expiry: {e}") # Log for debugging
     return redirect(url_for('bucket_objects', bucket_name=bucket))
+
+@app.route('/rules', methods=['GET', 'POST'])
+def rules():
+    """Manages bucket-level lifecycle rules based on tags."""
+    if 'user_id' not in session:
+        flash('Please log in to manage rules.', 'warning')
+        return redirect(url_for('login'))
+    
+    s3_client = None
+    try:
+        s3_client = get_s3_client()
+        available_buckets = get_s3_bucket_names(s3_client)
+    except Exception as e:
+        flash(f"Could not load S3 client or bucket list: {e}", 'error')
+        return render_template('rules.html', datetime=datetime, available_buckets=[], all_bucket_rules={})
+
+
+    if request.method == 'POST':
+        bucket_name = request.form.get('bucket_name')
+        rule_type = request.form.get('rule_type') # 'create' or 'delete'
+        rule_id_to_delete = request.form.get('rule_id_to_delete') # for delete operation
+
+        if rule_type == 'create':
+            tag_key = request.form.get('tag_key')
+            tag_value = request.form.get('tag_value')
+            days_to_expire = request.form.get('days_to_expire')
+            prefix_filter = request.form.get('prefix_filter', '').strip() # Optional prefix
+
+            if not all([bucket_name, tag_key, tag_value, days_to_expire]) or not days_to_expire.isdigit() or int(days_to_expire) <= 0:
+                flash('Invalid input for creating a rule. Please fill all fields correctly (days must be positive integer).', 'error')
+                return redirect(url_for('rules'))
+
+            days_to_expire = int(days_to_expire)
+            
+            try:
+                existing_rules = get_bucket_lifecycle_config(s3_client, bucket_name)
+                
+                # Create the new rule definition structure
+                new_rule_filter = {
+                    'And': {
+                        'Tags': [{'Key': tag_key, 'Value': tag_value}]
+                    }
+                }
+                if prefix_filter:
+                    new_rule_filter['And']['Prefix'] = prefix_filter
+
+                # Generate a unique ID for the new rule based on its properties
+                # This makes it easier to find/update/delete the rule later
+                # A more robust ID generation might hash the rule properties
+                generated_id = f"s3flow-tag-expiry-{bucket_name}-{tag_key}-{tag_value}-{days_to_expire}"
+                if prefix_filter:
+                    generated_id += f"-prefix-{prefix_filter.replace('/', '-')}"
+                generated_id = generated_id.replace('.', '_').replace(':', '_').replace(' ', '_').lower()[:128] # Sanitize for S3 ID length
+
+                new_rule = {
+                    'ID': generated_id,
+                    'Filter': new_rule_filter,
+                    'Status': 'Enabled',
+                    'Expiration': {'Days': days_to_expire}
+                }
+
+                # Check if a similar rule (same bucket, same tags, same prefix) already exists.
+                # If so, update it. Otherwise, add as new.
+                found_and_updated = False
+                for i, rule in enumerate(existing_rules):
+                    if rule.get('Filter') == new_rule_filter: # Simple equality check for filter
+                        existing_rules[i] = new_rule # Replace the old rule with the updated one
+                        found_and_updated = True
+                        break
+                
+                if not found_and_updated:
+                    existing_rules.append(new_rule)
+                
+                lifecycle_config_payload = {'Rules': existing_rules}
+                s3_client.put_bucket_lifecycle_configuration(Bucket=bucket_name, LifecycleConfiguration=lifecycle_config_payload)
+                log_action(session['user_id'], f"Created/Updated lifecycle rule on {bucket_name} for tag {tag_key}:{tag_value} to expire in {days_to_expire} days.")
+                flash(f"Lifecycle rule successfully set for '{bucket_name}'.", 'success')
+            except ClientError as e:
+                flash(f"Error creating/updating rule: {e}", 'error')
+                print(f"Error creating/updating rule: {e}")
+            except Exception as e:
+                flash(f"An unexpected error occurred: {e}", 'error')
+                print(f"An unexpected error occurred: {e}")
+            
+        elif rule_type == 'delete':
+            if not all([bucket_name, rule_id_to_delete]):
+                flash('Invalid input for deleting a rule.', 'error')
+                return redirect(url_for('rules'))
+
+            try:
+                existing_rules = get_bucket_lifecycle_config(s3_client, bucket_name)
+                # Filter out the rule to be deleted
+                updated_rules = [rule for rule in existing_rules if rule.get('ID') != rule_id_to_delete]
+
+                if len(updated_rules) == 0:
+                    # If no rules left, delete the entire configuration
+                    s3_client.delete_bucket_lifecycle_configuration(Bucket=bucket_name)
+                    log_action(session['user_id'], f"Deleted all lifecycle rules from {bucket_name}.")
+                else:
+                    # Otherwise, put the updated list of rules
+                    lifecycle_config_payload = {'Rules': updated_rules}
+                    s3_client.put_bucket_lifecycle_configuration(Bucket=bucket_name, LifecycleConfiguration=lifecycle_config_payload)
+                    log_action(session['user_id'], f"Deleted lifecycle rule '{rule_id_to_delete}' from {bucket_name}.")
+                flash(f"Lifecycle rule '{rule_id_to_delete}' removed successfully from '{bucket_name}'.", 'success')
+            except ClientError as e:
+                flash(f"Error deleting rule: {e}", 'error')
+                print(f"Error deleting rule: {e}")
+            except Exception as e:
+                flash(f"An unexpected error occurred: {e}", 'error')
+                print(f"An unexpected error occurred: {e}")
+
+        return redirect(url_for('rules'))
+    
+    # GET request: Display existing rules
+    all_bucket_rules = {}
+    for bucket_name in available_buckets:
+        rules_for_bucket = get_bucket_lifecycle_config(s3_client, bucket_name)
+        if rules_for_bucket:
+            all_bucket_rules[bucket_name] = rules_for_bucket
+
+    return render_template('rules.html', 
+                           datetime=datetime, 
+                           available_buckets=available_buckets,
+                           all_bucket_rules=all_bucket_rules)
 
 @app.route('/logs')
 def view_logs():
@@ -502,4 +628,3 @@ if __name__ == "__main__":
     # Run the Flask development server.
     # For production, NEVER use debug=True. Use a WSGI server like Gunicorn/uWSGI.
     app.run(debug=False) # Production-ready: debug=False
-

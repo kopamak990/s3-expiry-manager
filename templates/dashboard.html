@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Dashboard - S3Guard{% endblock %}
+{% block title %}Dashboard - S3Flow{% endblock %}
 
 {% block content %}
     <div class="bg-white p-8 rounded-lg shadow-xl border border-gray-200">
@@ -102,12 +102,17 @@
                 Quick Actions
             </h3>
             <p class="text-gray-600 mb-5">Jump directly to your S3 resources or review past activities.</p>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <a href="{{ url_for('buckets') }}" 
                    class="bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 text-white text-center font-semibold py-3 px-6 rounded-lg focus:outline-none focus:ring-4 focus:ring-emerald-300 transition duration-300 ease-in-out transform hover:-translate-y-0.5 shadow-md flex items-center justify-center">
                     <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm0 4a1 1 0 011-1h12a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1V8zm0 5a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1v-2z" clip-rule="evenodd"></path></svg>
                     View S3 Buckets
                 </a>
+                <a href="{{ url_for('rules') }}" 
+                   class="bg-rose-500 hover:bg-rose-600 active:bg-rose-700 text-white text-center font-semibold py-3 px-6 rounded-lg focus:outline-none focus:ring-4 focus:ring-rose-300 transition duration-300 ease-in-out transform hover:-translate-y-0.5 shadow-md flex items-center justify-center">
+                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M11.828 2.25c-.968-1.54-2.613-1.54-3.581 0A5.25 5.25 0 004.5 7.5v.75a.75.75 0 01-.75.75H2.25a.75.75 0 01-.75-.75V7.5A6.75 6.75 0 017.61 2.99a1.5 1.5 0 011.086-.736c.642-.143 1.309-.143 1.951 0a1.5 1.5 0 011.086.736A6.75 6.75 0 0119.5 7.5v.75c0 .414-.336.75-.75.75h-2.25a.75.75 0 01-.75-.75V7.5A5.25 5.25 0 0011.828 2.25z" clip-rule="evenodd"></path><path fill-rule="evenodd" d="M12 8.25a.75.75 0 01.75.75v.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zM6 15.75a.75.75 0 01.75-.75h.008v.008H6.75a.75.75 0 01-.75-.75zm.75 3a.75.75 0 01-.75-.75V18a.75.75 0 011.5 0v.75a.75.75 0 01-.75.75zm3-3a.75.75 0 01-.75-.75v-.008h.008v.008H9.75a.75.75 0 01-.75.75zm.75 3a.75.75 0 01-.75-.75V18a.75.75 0 011.5 0v.75a.75.75 0 01-.75.75zM12 15.75a.75.75 0 01.75-.75h.008v.008H12.75a.75.75 0 01-.75.75zm.75 3a.75.75 0 01-.75-.75V18a.75.75 0 011.5 0v.75a.75.75 0 01-.75.75zM15 15.75a.75.75 0 01.75-.75h.008v.008H15.75a.75.75 0 01-.75.75zm.75 3a.75.75 0 01-.75-.75V18a.75.75 0 011.5 0v.75a.75.75 0 01-.75.75zM18 15.75a.75.75 0 01.75-.75h.008v.008H18.75a.75.75 0 01-.75.75zm.75 3a.75.75 0 01-.75-.75V18a.75.75 0 011.5 0v.75a.75.75 0 01-.75.75z" clip-rule="evenodd"></path></svg>
+                    Automated Rules
+                </a> {# Updated Link #}
                 <a href="{{ url_for('view_logs') }}" 
                    class="bg-teal-500 hover:bg-teal-600 active:bg-teal-700 text-white text-center font-semibold py-3 px-6 rounded-lg focus:outline-none focus:ring-4 focus:ring-teal-300 transition duration-300 ease-in-out transform hover:-translate-y-0.5 shadow-md flex items-center justify-center">
                     <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 2a8 8 0 100 16 8 8 0 000-16zM6 9a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"></path></svg>

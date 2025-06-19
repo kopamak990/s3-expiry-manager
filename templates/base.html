@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}S3 Expiry Manager{% endblock %}</title>
+    <title>{% block title %}S3Flow - Automated S3 Management{% endblock %}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -23,12 +23,13 @@
     <header class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white p-4 shadow-lg">
         <div class="container mx-auto flex flex-col md:flex-row justify-between items-center">
             <h1 class="text-3xl font-extrabold mb-2 md:mb-0">
-                <a href="{{ url_for('dashboard') }}" class="hover:text-blue-200 transition duration-200">S3Guard</a>
+                <a href="{{ url_for('dashboard') }}" class="hover:text-blue-200 transition duration-200">S3Flow</a>
             </h1>
             <nav class="w-full md:w-auto">
                 <ul class="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-6 items-center">
                     <li><a href="{{ url_for('dashboard') }}" class="text-white hover:text-blue-200 font-medium transition duration-200 py-1 px-3 rounded-md">Dashboard</a></li>
                     <li><a href="{{ url_for('buckets') }}" class="text-white hover:text-blue-200 font-medium transition duration-200 py-1 px-3 rounded-md">Buckets</a></li>
+                    <li><a href="{{ url_for('rules') }}" class="text-white hover:text-blue-200 font-medium transition duration-200 py-1 px-3 rounded-md">Lifecycle Rules</a></li> {# New Nav Item #}
                     <li><a href="{{ url_for('view_logs') }}" class="text-white hover:text-blue-200 font-medium transition duration-200 py-1 px-3 rounded-md">Action Logs</a></li>
                     <li>
                         <a href="{{ url_for('logout') }}" 
@@ -60,8 +61,8 @@
 
     <footer class="bg-gray-800 text-white p-4 text-center mt-8 shadow-inner">
         <div class="container mx-auto">
-            <p>&copy; {{ datetime.now().year if datetime else '2023' }} S3Guard. All rights reserved.</p>
-            <p class="text-xs mt-1 text-gray-400">Secure Cloud Management</p>
+            <p>&copy; {{ datetime.now().year if datetime else '2023' }} S3Flow. All rights reserved.</p>
+            <p class="text-xs mt-1 text-gray-400">Automated Cloud Storage Management</p>
         </div>
     </footer>
 </body>
