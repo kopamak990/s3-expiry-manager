@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 import boto3
+from botocore.exceptions import ClientError
 import os
 from datetime import datetime, timedelta
 
@@ -150,21 +151,94 @@ def logout():
     flash('You have been logged out.', 'info')
     return redirect(url_for('login'))
 
+# --- New Function to Check for Public Buckets ---
+def check_public_buckets(s3_client):
+    public_buckets = []
+    try:
+        response = s3_client.list_buckets()
+        for bucket in response['Buckets']:
+            bucket_name = bucket['Name']
+            try:
+                # Check Bucket ACL
+                acl_response = s3_client.get_bucket_acl(Bucket=bucket_name)
+                for grant in acl_response['Grants']:
+                    # Check for 'AllUsers' or 'AuthenticatedUsers' permissions for read access
+                    if 'Grantee' in grant and 'URI' in grant['Grantee']:
+                        if (('http://acs.amazonaws.com/groups/global/AllUsers' == grant['Grantee']['URI'] or
+                             'http://acs.amazonaws.com/groups/global/AuthenticatedUsers' == grant['Grantee']['URI']) and
+                            ('READ' == grant['Permission'] or 'FULL_CONTROL' == grant['Permission'])):
+                            public_buckets.append({'name': bucket_name, 'reason': 'ACL'})
+                            break # No need to check other grants for this bucket
+
+                # Check Bucket Policy (more comprehensive for public access)
+                # This needs specific permissions to read bucket policies
+                try:
+                    policy_response = s3_client.get_bucket_policy(Bucket=bucket_name)
+                    policy_doc = json.loads(policy_response['Policy']) # Policy is a JSON string
+                    for statement in policy_doc.get('Statement', []):
+                        if (statement.get('Effect') == 'Allow' and
+                            'Principal' in statement and
+                            (statement['Principal'] == '*' or (isinstance(statement['Principal'], dict) and statement['Principal'].get('AWS') == '*')) and
+                            'Action' in statement and
+                            (isinstance(statement['Action'], str) and ('s3:GetObject' in statement['Action'] or statement['Action'] == '*')) or
+                            (isinstance(statement['Action'], list) and ('s3:GetObject' in statement['Action'] or '*' in statement['Action']))):
+                            
+                            # Further check if Condition allows public access to specific resources if any
+                            # For simplicity, if Principal is '*' and GetObject is allowed, we mark as public
+                            public_buckets.append({'name': bucket_name, 'reason': 'Policy'})
+                            break # No need to check other statements for this bucket
+                except ClientError as e:
+                    if e.response['Error']['Code'] == 'NoSuchBucketPolicy':
+                        pass # No policy, not necessarily public via policy
+                    else:
+                        # Log other policy errors but don't stop public bucket check
+                        print(f"Warning: Could not retrieve bucket policy for {bucket_name}: {e}")
+                except Exception as e:
+                    print(f"Warning: Error parsing bucket policy for {bucket_name}: {e}")
+
+            except ClientError as e:
+                # Common case: User doesn't have s3:GetBucketAcl or s3:GetBucketPolicy permission for ALL buckets
+                if e.response['Error']['Code'] == 'AccessDenied':
+                    print(f"Access Denied: Cannot check ACL/Policy for bucket {bucket_name}. Ensure 's3:GetBucketAcl' and 's3:GetBucketPolicy' permissions.")
+                else:
+                    print(f"Error checking bucket {bucket_name} for public access: {e}")
+            except Exception as e:
+                print(f"Unexpected error during public bucket check for {bucket_name}: {e}")
+    except ClientError as e:
+        flash(f"Error listing buckets for public check: {e}", 'error')
+        print(f"Error listing buckets for public check: {e}")
+    except Exception as e:
+        flash(f"An unexpected error occurred during public bucket check: {e}", 'error')
+        print(f"An unexpected error occurred during public bucket check: {e}")
+
+    return public_buckets
+
+
 @app.route('/dashboard')
 def dashboard():
     """Displays the user dashboard and allows AWS credential management."""
     if 'user_id' not in session:
-        flash('Please log in to access the dashboard.', 'warning')
         return redirect(url_for('login'))
     
-    # --- New Feature: Display Total Users ---
     total_users = User.query.count()
+    public_buckets_list = []
+    
+    try:
+        s3 = get_s3_client()
+        # Call the new function to check for public buckets
+        public_buckets_list = check_public_buckets(s3)
+        if public_buckets_list:
+            flash(f"WARNING: {len(public_buckets_list)} publicly accessible S3 buckets detected!", 'warning')
+    except Exception as e:
+        # Catch exception from get_s3_client if credentials are bad
+        public_buckets_list = [] # Clear list if client couldn't be initialized
+        print(f"Could not check public buckets due to S3 client error: {e}")
 
-    # Pass datetime object to template for copyright year
     return render_template('dashboard.html', 
                            username=session['username'], 
                            datetime=datetime,
-                           total_users=total_users)
+                           total_users=total_users,
+                           public_buckets=public_buckets_list)
 
 @app.route('/credentials', methods=['POST'])
 def credentials():

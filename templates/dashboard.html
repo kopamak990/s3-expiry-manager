@@ -6,6 +6,28 @@
     <div class="bg-white p-8 rounded-lg shadow-xl border border-gray-200">
         <h2 class="text-4xl font-extrabold text-gray-900 mb-8 text-center">Hello, {{ username }}!</h2>
 
+        {# Public Buckets Alert Card #}
+        {% if public_buckets %}
+            <div class="bg-red-50 border border-red-400 text-red-800 p-6 rounded-lg shadow-md mb-8">
+                <h3 class="text-2xl font-bold mb-4 flex items-center">
+                    <svg class="w-7 h-7 mr-3 text-red-600" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M9.401 3.003c1.155-2.001 4.041-2.001 5.196 0L19.72 10.703a4.5 4.5 0 010 4.594L14.597 21.003c-1.155 2.001-4.041 2.001-5.196 0L4.28 15.297a4.5 4.5 0 010-4.594L9.401 3.003zM12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z" clip-rule="evenodd"></path></svg>
+                    Critical Security Alert!
+                </h3>
+                <p class="text-lg mb-4">The following S3 buckets are publicly accessible. This poses a significant security risk. Please review them immediately:</p>
+                <ul class="list-disc pl-5 space-y-2 mb-6">
+                    {% for bucket_info in public_buckets %}
+                        <li>
+                            <span class="font-semibold">{{ bucket_info.name }}</span> (Reason: {{ bucket_info.reason }})
+                            <a href="https://s3.console.aws.amazon.com/s3/buckets/{{ bucket_info.name }}?tab=permissions" target="_blank" class="text-blue-700 hover:text-blue-900 underline ml-2 text-sm">
+                                View in AWS Console <span aria-hidden="true">↗</span>
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+                <p class="text-sm">Public buckets can lead to data breaches. Always ensure your S3 permissions follow the principle of least privilege.</p>
+            </div>
+        {% endif %}
+
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
             {# Overall Statistics Card #}
             <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 shadow-md">
