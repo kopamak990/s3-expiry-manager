@@ -206,9 +206,17 @@
                         </div>
                     {% endfor %}
                 {% else %}
-                    <div class="p-6 bg-gray-50 border border-gray-200 rounded-lg text-gray-700 text-center">
-                        <p class="text-lg font-semibold mb-2">No lifecycle rules configured yet.</p>
-                        <p>Use the form above to create your first automated rule!</p>
+                    <div class="p-8 bg-gray-50 border border-gray-200 rounded-lg text-gray-700 text-center flex flex-col items-center justify-center min-h-[150px]">
+                        <span class="text-5xl mb-4" role="img" aria-label="No Rules">📄<span class="opacity-50">❌</span></span>
+                        <p class="text-xl font-semibold mb-3">No lifecycle rules configured yet!</p>
+                        <p class="text-gray-700 mb-4 max-w-prose">
+                            Automate your S3 data management and start saving costs. Define rules above based on object tags to automatically expire data.
+                        </p>
+                        <button onclick="document.getElementById('create-rule-form').scrollIntoView({ behavior: 'smooth' });"
+                                class="inline-flex items-center bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold py-2.5 px-5 rounded-lg text-base shadow-md transition duration-300 ease-in-out transform hover:-translate-y-0.5">
+                            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd"></path></svg>
+                            Create First Rule
+                        </button>
                     </div>
                 {% endif %}
             </div>

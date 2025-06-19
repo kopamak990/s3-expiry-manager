@@ -31,9 +31,17 @@
                 </table>
             </div>
         {% else %}
-            <div class="p-6 bg-indigo-50 border border-indigo-200 rounded-lg text-indigo-800 text-center">
-                <p class="text-lg font-semibold mb-2">No actions logged yet.</p>
-                <p>Start managing your S3 buckets to see your activity appear here!</p>
+            <div class="p-8 bg-indigo-50 border border-indigo-200 rounded-lg text-indigo-800 text-center flex flex-col items-center justify-center min-h-[150px]">
+                <span class="text-5xl mb-4" role="img" aria-label="Empty Log">📜✨</span>
+                <p class="text-xl font-semibold mb-3">No actions logged yet!</p>
+                <p class="text-gray-700 max-w-prose">
+                    Your S3Flow activity, such as setting expiry rules, deleting objects, or downloading files, will appear here.
+                    Start managing your S3 buckets to see your actions logged.
+                </p>
+                <a href="{{ url_for('buckets') }}" class="inline-flex items-center bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-semibold py-2.5 px-5 rounded-lg text-base shadow-md transition duration-300 ease-in-out transform hover:-translate-y-0.5 mt-4">
+                    <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm0 4a1 1 0 011-1h12a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1V8zm0 5a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1v-2z" clip-rule="evenodd"></path></svg>
+                    Manage Your Buckets
+                </a>
             </div>
         {% endif %}
     </div>

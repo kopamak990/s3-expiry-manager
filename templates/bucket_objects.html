@@ -42,17 +42,26 @@
             }
             // Toggle visibility of "no objects found" message
             const noObjectsMessage = document.getElementById('no-objects-message');
-            if (noObjectsMessage) {
-                if (hasVisibleRows || rows.length === 0) { // If there are visible rows or truly no objects
-                    noObjectsMessage.classList.add('hidden');
-                } else {
+            const initialNoObjectsMessage = document.getElementById('initial-no-objects-message'); // The server-rendered one
+
+            if (noObjectsMessage && initialNoObjectsMessage) {
+                 // If there are actual objects, but filtered to none, show client-side message
+                if (rows.length > 0 && !hasVisibleRows) {
                     noObjectsMessage.classList.remove('hidden');
+                    initialNoObjectsMessage.classList.add('hidden'); // Hide the initial one
+                } else if (rows.length === 0) { // If truly no objects from server
+                    noObjectsMessage.classList.add('hidden'); // Hide client-side search empty state
+                    initialNoObjectsMessage.classList.remove('hidden'); // Show server-side empty state
+                } else { // If there are visible rows
+                    noObjectsMessage.classList.add('hidden');
+                    initialNoObjectsMessage.classList.add('hidden');
                 }
             }
         }
         
         // Initial filter application in case search input had pre-filled value
-        filterObjects();
+        // Wait briefly to ensure all rows are rendered before filtering
+        setTimeout(filterObjects, 50); 
 
         // Loading indicator for table actions (download/delete/expiry)
         function showFormLoading(form, buttonText) {
@@ -159,16 +168,20 @@
                     </tbody>
                 </table>
             </div>
-            {# "No objects found" message for when the initial list is empty or search yields no results #}
-            <div id="no-objects-message" class="p-6 bg-blue-50 border border-blue-200 rounded-lg text-blue-800 text-center mt-6 {% if objects %}hidden{% endif %}">
-                <p class="text-lg font-semibold mb-2">No objects found in this bucket!</p>
-                <p>This bucket appears to be empty or your search did not return any results.</p>
+            {# "No objects found" message for when search yields no results #}
+            <div id="no-objects-message" class="p-6 bg-blue-50 border border-blue-200 rounded-lg text-blue-800 text-center mt-6 hidden">
+                <span class="text-5xl mb-4" role="img" aria-label="No Results">🔍❌</span>
+                <p class="text-lg font-semibold mb-2">No matching objects found.</p>
+                <p>Your search did not return any results in this bucket. Try a different key!</p>
             </div>
         {% else %}
             {# Initial "No objects" message when the bucket is truly empty from server-side load #}
-            <div class="p-6 bg-blue-50 border border-blue-200 rounded-lg text-blue-800 text-center">
-                <p class="text-lg font-semibold mb-2">No objects found in this bucket!</p>
-                <p>This bucket appears to be empty.</p>
+            <div id="initial-no-objects-message" class="p-8 bg-blue-50 border border-blue-200 rounded-lg text-blue-800 text-center flex flex-col items-center justify-center min-h-[150px]">
+                <span class="text-5xl mb-4" role="img" aria-label="Empty Bucket">🪣💨</span>
+                <p class="text-xl font-semibold mb-3">No objects found in this bucket!</p>
+                <p class="text-gray-700 max-w-prose">
+                    This bucket currently appears to be empty. You can upload objects to it using the AWS Console or AWS CLI.
+                </p>
             </div>
         {% endif %}
     </div>
